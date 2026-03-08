@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/lib/supabase/admin";
+import { getTemplateById, buildTemplatePrompt } from "@/lib/sow-templates";
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -46,7 +47,7 @@ When a deliverable matches a catalog service, use the catalog's hours range and 
 
 export async function POST(req: Request) {
   try {
-    const { transcript } = await req.json();
+    const { transcript, templateId } = await req.json();
 
     if (!transcript || typeof transcript !== "string") {
       return NextResponse.json({ error: "Transcript is required" }, { status: 400 });
@@ -117,13 +118,22 @@ export async function POST(req: Request) {
       }
     }
 
-    // Step 3: Generate full SOW with catalog context
+    // Step 3: Generate full SOW with catalog and template context
     const enrichedTranscript = buildEnrichedPrompt(transcript, catalogMatches);
+
+    // Build system prompt with optional template context
+    let systemPrompt = SYSTEM_PROMPT;
+    if (templateId) {
+      const template = getTemplateById(templateId);
+      if (template) {
+        systemPrompt = SYSTEM_PROMPT + "\n\n" + buildTemplatePrompt(template);
+      }
+    }
 
     const message = await anthropic.messages.create({
       model: "claude-sonnet-4-20250514",
       max_tokens: 4096,
-      system: SYSTEM_PROMPT,
+      system: systemPrompt,
       messages: [{ role: "user", content: enrichedTranscript }],
     });
 
