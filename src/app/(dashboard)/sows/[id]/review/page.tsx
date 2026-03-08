@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -55,7 +55,6 @@ function ReadOnlySection({ title, icon, children }: { title: string; icon: React
 
 export default function ReviewPage() {
   const { id } = useParams();
-  const router = useRouter();
   const [sow, setSow] = useState<SOW | null>(null);
   const [loading, setLoading] = useState(true);
   const [comment, setComment] = useState("");

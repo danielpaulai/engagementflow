@@ -62,6 +62,7 @@ export async function POST(
 
     // If this is version 1, also save the original as version 0
     if (nextVersion === 1) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id: _id, created_at: _ca, ...originalContent } = currentSow;
       await supabaseAdmin.from("sow_versions").insert({
         sow_id: params.id,
@@ -109,6 +110,7 @@ export async function POST(
     const changeSummary = `Updated ${fieldLabels[field] || field}`;
 
     // 6. Create the version record with the NEW state
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { id: _id2, created_at: _ca2, ...snapshotContent } = updatedSow;
     const { error: versionError } = await supabaseAdmin
       .from("sow_versions")
