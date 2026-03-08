@@ -11,17 +11,32 @@ interface CatalogService {
   hours_min: number;
   hours_max: number;
   base_rate: number;
+  currency: string;
   out_of_scope: string;
   region: string;
   created_at: string;
 }
 
+const CURRENCIES = ["USD", "EUR", "GBP", "SGD", "MYR", "AED", "AUD", "CAD"];
+
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  USD: "$",
+  EUR: "€",
+  GBP: "£",
+  SGD: "S$",
+  MYR: "RM",
+  AED: "AED ",
+  AUD: "A$",
+  CAD: "C$",
+};
+
 const emptyForm = {
   service_name: "",
   description: "",
-  hours_min: 0,
-  hours_max: 0,
-  base_rate: 0,
+  hours_min: "",
+  hours_max: "",
+  base_rate: "",
+  currency: "USD",
   out_of_scope: "",
   region: "",
 };
@@ -64,9 +79,10 @@ export default function CatalogPage() {
     setForm({
       service_name: service.service_name,
       description: service.description,
-      hours_min: service.hours_min,
-      hours_max: service.hours_max,
-      base_rate: service.base_rate,
+      hours_min: String(service.hours_min || ""),
+      hours_max: String(service.hours_max || ""),
+      base_rate: String(service.base_rate || ""),
+      currency: service.currency || "USD",
       out_of_scope: service.out_of_scope,
       region: service.region,
     });
@@ -122,7 +138,7 @@ export default function CatalogPage() {
     }
   };
 
-  const updateForm = (field: string, value: string | number) => {
+  const updateForm = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -200,7 +216,7 @@ export default function CatalogPage() {
                       {s.hours_min}–{s.hours_max}h
                     </td>
                     <td className="px-6 py-4 text-gray-700 whitespace-nowrap">
-                      ${s.base_rate.toLocaleString()}
+                      {CURRENCY_SYMBOLS[s.currency] || s.currency || "$"}{s.base_rate.toLocaleString()}
                     </td>
                     <td className="px-6 py-4 text-gray-500">
                       {s.region || "—"}
@@ -285,12 +301,11 @@ export default function CatalogPage() {
                     Min Hours
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     value={form.hours_min}
-                    onChange={(e) =>
-                      updateForm("hours_min", parseInt(e.target.value) || 0)
-                    }
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-800 focus:outline-none focus:border-[#9333EA] focus:ring-2 focus:ring-[#9333EA]/20 transition-colors"
+                    onChange={(e) => updateForm("hours_min", e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#9333EA] focus:ring-2 focus:ring-[#9333EA]/20 transition-colors"
+                    placeholder="e.g. 40"
                   />
                 </div>
                 <div>
@@ -298,29 +313,39 @@ export default function CatalogPage() {
                     Max Hours
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     value={form.hours_max}
-                    onChange={(e) =>
-                      updateForm("hours_max", parseInt(e.target.value) || 0)
-                    }
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-800 focus:outline-none focus:border-[#9333EA] focus:ring-2 focus:ring-[#9333EA]/20 transition-colors"
+                    onChange={(e) => updateForm("hours_max", e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#9333EA] focus:ring-2 focus:ring-[#9333EA]/20 transition-colors"
+                    placeholder="e.g. 120"
                   />
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Base Rate ($)
+                  Base Rate
                 </label>
-                <input
-                  type="number"
-                  value={form.base_rate}
-                  onChange={(e) =>
-                    updateForm("base_rate", parseInt(e.target.value) || 0)
-                  }
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-800 focus:outline-none focus:border-[#9333EA] focus:ring-2 focus:ring-[#9333EA]/20 transition-colors"
-                  placeholder="0"
-                />
+                <div className="flex gap-3">
+                  <select
+                    value={form.currency}
+                    onChange={(e) => updateForm("currency", e.target.value)}
+                    className="px-3 py-3 rounded-xl border border-gray-200 text-gray-800 bg-white focus:outline-none focus:border-[#9333EA] focus:ring-2 focus:ring-[#9333EA]/20 transition-colors text-sm"
+                  >
+                    {CURRENCIES.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="text"
+                    value={form.base_rate}
+                    onChange={(e) => updateForm("base_rate", e.target.value)}
+                    className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#9333EA] focus:ring-2 focus:ring-[#9333EA]/20 transition-colors"
+                    placeholder="e.g. 15000"
+                  />
+                </div>
               </div>
 
               <div>
