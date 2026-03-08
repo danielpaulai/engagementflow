@@ -147,7 +147,7 @@ interface SOW {
   created_at: string;
 }
 
-function SOWDocument({ sow }: { sow: SOW }) {
+function buildSOWDocument(sow: SOW) {
   const createdDate = new Date(sow.created_at).toLocaleDateString("en-GB", {
     day: "numeric",
     month: "long",
@@ -156,7 +156,7 @@ function SOWDocument({ sow }: { sow: SOW }) {
 
   return React.createElement(
     Document,
-    null,
+    {},
     React.createElement(
       Page,
       { size: "A4", style: styles.page },
@@ -276,9 +276,8 @@ export async function GET(
     }
 
     const s = sow as SOW;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const pdfStream = await ReactPDF.renderToStream(
-      React.createElement(SOWDocument, { sow: s }) as any
+      buildSOWDocument(s)
     );
 
     const chunks: Uint8Array[] = [];
