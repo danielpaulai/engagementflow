@@ -276,8 +276,9 @@ export async function GET(
     }
 
     const s = sow as SOW;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const pdfStream = await ReactPDF.renderToStream(
-      React.createElement(SOWDocument, { sow: s })
+      React.createElement(SOWDocument, { sow: s }) as any
     );
 
     const chunks: Uint8Array[] = [];
