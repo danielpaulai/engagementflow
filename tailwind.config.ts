@@ -12,6 +12,19 @@ const config: Config = {
         background: "var(--background)",
         foreground: "var(--foreground)",
       },
+      animation: {
+        shine: "shine var(--duration) infinite linear",
+      },
+      keyframes: {
+        shine: {
+          "0%": { backgroundPosition: "0% 0%" },
+          "50%": { backgroundPosition: "100% 100%" },
+          "100%": { backgroundPosition: "0% 0%" },
+        },
+      },
+      backgroundSize: {
+        "shine-size": "300% 300%",
+      },
     },
   },
   plugins: [],

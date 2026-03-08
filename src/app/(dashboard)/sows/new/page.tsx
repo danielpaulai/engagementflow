@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check, Shield, Clock, FileText } from "lucide-react";
 import GlowButton from "@/components/ui/GlowButton";
+import { ShineBorder } from "@/components/ui/shine-border";
 import { SOW_TEMPLATES } from "@/lib/sow-templates";
 
 const TEMPLATE_ICONS: Record<string, typeof Shield> = {
@@ -63,11 +64,12 @@ export default function NewSOWPage() {
           {SOW_TEMPLATES.map((template) => {
             const isSelected = selectedTemplate === template.id;
             const Icon = TEMPLATE_ICONS[template.id] || Shield;
-            return (
+
+            const cardContent = (
               <button
                 key={template.id}
                 onClick={() => setSelectedTemplate(isSelected ? null : template.id)}
-                className={`relative text-left rounded-2xl border-2 p-5 transition-all ${
+                className={`relative text-left rounded-2xl border-2 p-5 transition-all w-full ${
                   isSelected
                     ? "border-[#9333EA] bg-[#F3F0FF] shadow-md"
                     : "border-gray-200 bg-white hover:border-[#9333EA]/40 hover:shadow-sm"
@@ -91,6 +93,22 @@ export default function NewSOWPage() {
                 </div>
               </button>
             );
+
+            if (isSelected) {
+              return (
+                <ShineBorder
+                  key={template.id}
+                  color={["#9333EA", "#B8BEC1", "#9333EA"]}
+                  borderRadius={16}
+                  borderWidth={1}
+                  duration={8}
+                >
+                  {cardContent}
+                </ShineBorder>
+              );
+            }
+
+            return <div key={template.id}>{cardContent}</div>;
           })}
         </div>
 
@@ -125,13 +143,21 @@ export default function NewSOWPage() {
           </div>
         ) : (
           <div className="mt-6">
-            <GlowButton
-              onClick={handleGenerate}
-              disabled={!transcript.trim()}
+            <ShineBorder
+              color={["#9333EA", "#E90D41", "#9333EA"]}
+              borderRadius={12}
+              borderWidth={1}
+              duration={6}
               className="w-full"
             >
-              Generate SOW{selectedTemplate ? ` with ${SOW_TEMPLATES.find((t) => t.id === selectedTemplate)?.name}` : ""}
-            </GlowButton>
+              <GlowButton
+                onClick={handleGenerate}
+                disabled={!transcript.trim()}
+                className="w-full"
+              >
+                Generate SOW{selectedTemplate ? ` with ${SOW_TEMPLATES.find((t) => t.id === selectedTemplate)?.name}` : ""}
+              </GlowButton>
+            </ShineBorder>
           </div>
         )}
       </div>
