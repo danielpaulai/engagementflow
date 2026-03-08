@@ -21,7 +21,7 @@ export async function GET() {
   }
 }
 
-// POST: create a new service
+// POST: create a new service via RPC (bypasses PostgREST schema cache)
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -31,27 +31,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Service name is required" }, { status: 400 });
     }
 
-    const insertData = {
-      service_name,
-      description: description || "",
-      hours_min: typeof hours_min === "string" ? parseInt(hours_min) || 0 : hours_min || 0,
-      hours_max: typeof hours_max === "string" ? parseInt(hours_max) || 0 : hours_max || 0,
-      base_rate: typeof base_rate === "string" ? parseInt(base_rate) || 0 : base_rate || 0,
-      currency: currency || "USD",
-      out_of_scope: out_of_scope || "",
-      region: region || "",
-    };
-
-    console.log("Inserting catalog service:", JSON.stringify(insertData, null, 2));
-
-    const { data, error } = await supabaseAdmin
-      .from("solution_catalog")
-      .insert(insertData)
-      .select()
-      .single();
+    const { data, error } = await supabaseAdmin.rpc("insert_catalog_service", {
+      p_service_name: service_name,
+      p_description: description || "",
+      p_hours_min: typeof hours_min === "string" ? parseInt(hours_min) || 0 : hours_min || 0,
+      p_hours_max: typeof hours_max === "string" ? parseInt(hours_max) || 0 : hours_max || 0,
+      p_base_rate: typeof base_rate === "string" ? parseInt(base_rate) || 0 : base_rate || 0,
+      p_currency: currency || "USD",
+      p_out_of_scope: out_of_scope || "",
+      p_region: region || "",
+    });
 
     if (error) {
-      console.error("Catalog insert error (full):", JSON.stringify(error, null, 2));
+      console.error("Catalog insert RPC error:", JSON.stringify(error, null, 2));
       return NextResponse.json(
         { error: `Failed to create service: ${error.message} (code: ${error.code})` },
         { status: 500 }
@@ -65,30 +57,30 @@ export async function POST(req: Request) {
   }
 }
 
-// PATCH: update an existing service
+// PATCH: update an existing service via RPC (bypasses PostgREST schema cache)
 export async function PATCH(req: Request) {
   try {
     const body = await req.json();
-    const { id, ...updates } = body;
+    const { id, service_name, description, hours_min, hours_max, base_rate, currency, out_of_scope, region } = body;
 
     if (!id) {
       return NextResponse.json({ error: "Service ID is required" }, { status: 400 });
     }
 
-    // Parse numeric fields if they come as strings
-    if (updates.hours_min !== undefined) updates.hours_min = typeof updates.hours_min === "string" ? parseInt(updates.hours_min) || 0 : updates.hours_min;
-    if (updates.hours_max !== undefined) updates.hours_max = typeof updates.hours_max === "string" ? parseInt(updates.hours_max) || 0 : updates.hours_max;
-    if (updates.base_rate !== undefined) updates.base_rate = typeof updates.base_rate === "string" ? parseInt(updates.base_rate) || 0 : updates.base_rate;
-
-    const { data, error } = await supabaseAdmin
-      .from("solution_catalog")
-      .update(updates)
-      .eq("id", id)
-      .select()
-      .single();
+    const { data, error } = await supabaseAdmin.rpc("update_catalog_service", {
+      p_id: id,
+      p_service_name: service_name || "",
+      p_description: description || "",
+      p_hours_min: typeof hours_min === "string" ? parseInt(hours_min) || 0 : hours_min || 0,
+      p_hours_max: typeof hours_max === "string" ? parseInt(hours_max) || 0 : hours_max || 0,
+      p_base_rate: typeof base_rate === "string" ? parseInt(base_rate) || 0 : base_rate || 0,
+      p_currency: currency || "USD",
+      p_out_of_scope: out_of_scope || "",
+      p_region: region || "",
+    });
 
     if (error) {
-      console.error("Catalog update error:", JSON.stringify(error, null, 2));
+      console.error("Catalog update RPC error:", JSON.stringify(error, null, 2));
       return NextResponse.json({ error: `Failed to update service: ${error.message}` }, { status: 500 });
     }
 
