@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Settings, Mail, Send, Loader2, Check } from "lucide-react";
+import { Settings, Mail, Send, Loader2, Check, Link2, Phone } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import GlowButton from "@/components/ui/GlowButton";
 
@@ -9,18 +9,22 @@ interface UserPreferences {
   id?: string;
   weekly_snapshot_enabled: boolean;
   weekly_snapshot_email: string;
+  fireflies_api_key: string;
 }
 
 export default function SettingsPage() {
   const [prefs, setPrefs] = useState<UserPreferences>({
     weekly_snapshot_enabled: true,
     weekly_snapshot_email: "",
+    fireflies_api_key: "",
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
+  const [ffTesting, setFfTesting] = useState(false);
+  const [ffTestResult, setFfTestResult] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPrefs = async () => {
@@ -45,11 +49,13 @@ export default function SettingsPage() {
           id: data.id,
           weekly_snapshot_enabled: data.weekly_snapshot_enabled ?? true,
           weekly_snapshot_email: data.weekly_snapshot_email || user.email || "",
+          fireflies_api_key: data.fireflies_api_key || "",
         });
       } else {
         setPrefs({
           weekly_snapshot_enabled: true,
           weekly_snapshot_email: user.email || "",
+          fireflies_api_key: "",
         });
       }
 
@@ -79,6 +85,7 @@ export default function SettingsPage() {
         .update({
           weekly_snapshot_enabled: prefs.weekly_snapshot_enabled,
           weekly_snapshot_email: prefs.weekly_snapshot_email,
+          fireflies_api_key: prefs.fireflies_api_key,
           updated_at: new Date().toISOString(),
         })
         .eq("id", prefs.id);
@@ -89,6 +96,7 @@ export default function SettingsPage() {
           user_id: user.id,
           weekly_snapshot_enabled: prefs.weekly_snapshot_enabled,
           weekly_snapshot_email: prefs.weekly_snapshot_email,
+          fireflies_api_key: prefs.fireflies_api_key,
         })
         .select("id")
         .single();
@@ -130,6 +138,32 @@ export default function SettingsPage() {
     }
 
     setTesting(false);
+  };
+
+  const handleTestFireflies = async () => {
+    if (!prefs.fireflies_api_key) {
+      setFfTestResult("Please enter your Fireflies API key first.");
+      return;
+    }
+
+    setFfTesting(true);
+    setFfTestResult(null);
+
+    try {
+      const res = await fetch(`/api/calls?api_key=${encodeURIComponent(prefs.fireflies_api_key)}`);
+      const data = await res.json();
+
+      if (res.ok) {
+        const count = data.calls?.length || 0;
+        setFfTestResult(`Connected successfully. Found ${count} call recording${count !== 1 ? "s" : ""}.`);
+      } else {
+        setFfTestResult(data.error || "Connection failed.");
+      }
+    } catch {
+      setFfTestResult("Failed to connect. Check your API key.");
+    }
+
+    setFfTesting(false);
   };
 
   if (loading) {
@@ -233,6 +267,84 @@ export default function SettingsPage() {
               }`}
             >
               {testResult}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Integrations Section */}
+      <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-8 mb-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-9 h-9 rounded-xl bg-[#F3F0FF] flex items-center justify-center">
+            <Link2 size={16} className="text-[#9333EA]" />
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold text-gray-900">Integrations</h2>
+            <p className="text-xs text-gray-400">
+              Connect external services to enhance your workflow.
+            </p>
+          </div>
+        </div>
+
+        {/* Fireflies.ai */}
+        <div className="py-4 border-b border-gray-100">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Phone size={14} className="text-[#9333EA]" />
+              <p className="text-sm font-medium text-gray-800">Fireflies.ai</p>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className={`w-2 h-2 rounded-full ${prefs.fireflies_api_key ? "bg-emerald-500" : "bg-red-400"}`} />
+              <span className={`text-xs font-medium ${prefs.fireflies_api_key ? "text-emerald-600" : "text-red-500"}`}>
+                {prefs.fireflies_api_key ? "Connected" : "Not Connected"}
+              </span>
+            </div>
+          </div>
+          <label
+            htmlFor="ff-key"
+            className="block text-sm font-medium text-gray-700 mb-1.5"
+          >
+            API Key
+          </label>
+          <input
+            id="ff-key"
+            type="password"
+            value={prefs.fireflies_api_key}
+            onChange={(e) => setPrefs({ ...prefs, fireflies_api_key: e.target.value })}
+            placeholder="Enter your Fireflies.ai API key"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#9333EA] focus:ring-2 focus:ring-[#9333EA]/20 transition-colors text-sm"
+          />
+          <p className="text-xs text-gray-400 mt-1.5">
+            Find your API key at fireflies.ai/account/apps
+          </p>
+        </div>
+
+        {/* Test Connection */}
+        <div className="pt-4">
+          <button
+            onClick={handleTestFireflies}
+            disabled={ffTesting || !prefs.fireflies_api_key}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-[#F3F0FF] text-[#9333EA] hover:bg-[#E9D5FF] transition-colors disabled:opacity-50"
+          >
+            {ffTesting ? (
+              <>
+                <Loader2 size={14} className="animate-spin" />
+                Testing...
+              </>
+            ) : (
+              <>
+                <Link2 size={14} />
+                Test Connection
+              </>
+            )}
+          </button>
+          {ffTestResult && (
+            <p
+              className={`mt-2 text-xs ${
+                ffTestResult.includes("success") ? "text-emerald-600" : "text-red-500"
+              }`}
+            >
+              {ffTestResult}
             </p>
           )}
         </div>
