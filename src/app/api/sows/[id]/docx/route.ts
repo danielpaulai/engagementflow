@@ -12,7 +12,6 @@ import {
   AlignmentType,
   BorderStyle,
   ShadingType,
-  HeadingLevel,
   PageBreak,
   TabStopPosition,
   TabStopType,

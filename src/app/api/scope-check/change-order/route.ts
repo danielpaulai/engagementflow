@@ -207,7 +207,7 @@ function buildChangeOrderPDF(data: ChangeOrderData) {
 
 export async function POST(req: Request) {
   try {
-    const { out_of_scope, sow_title, sow_customer, sow_id } = await req.json();
+    const { out_of_scope, sow_title, sow_customer } = await req.json();
 
     if (!out_of_scope || !Array.isArray(out_of_scope) || out_of_scope.length === 0) {
       return NextResponse.json({ error: "No out-of-scope items provided" }, { status: 400 });
