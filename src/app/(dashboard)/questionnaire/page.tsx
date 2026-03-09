@@ -83,16 +83,23 @@ export default function QuestionnairePage() {
         }),
       });
 
+      const data = await res.json().catch(() => ({}));
+
       if (res.ok) {
-        setSendResult("Questionnaire sent successfully.");
+        const msg = data.warning
+          ? `Questionnaire created. Warning: ${data.warning}`
+          : "Questionnaire sent successfully.";
+        setSendResult(msg);
         setFormName("");
         setFormEmail("");
         setFormType("");
         fetchQuestionnaires();
-        setTimeout(() => setModalOpen(false), 1500);
+        if (!data.warning) setTimeout(() => setModalOpen(false), 1500);
       } else {
-        const data = await res.json().catch(() => ({}));
-        setSendResult(data.error || "Failed to send questionnaire.");
+        const detail = [data.error, data.code, data.details, data.hint]
+          .filter(Boolean)
+          .join(" | ");
+        setSendResult(detail || "Failed to send questionnaire.");
       }
     } catch {
       setSendResult("Something went wrong. Please try again.");

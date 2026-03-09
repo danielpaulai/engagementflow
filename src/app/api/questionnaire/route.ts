@@ -1,14 +1,23 @@
 import { NextResponse } from "next/server";
+import crypto from "crypto";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/email/sendEmail";
 
 export async function POST(req: Request) {
   try {
-    const { client_name, client_email, engagement_type } = await req.json();
+    const body = await req.json();
+    const { client_name, client_email, engagement_type } = body;
+
+    console.log("[questionnaire] POST body:", JSON.stringify(body));
 
     if (!client_name || !client_email) {
       return NextResponse.json({ error: "Client name and email are required" }, { status: 400 });
     }
+
+    // Generate token server-side to avoid relying on Supabase DEFAULT
+    const token = crypto.randomBytes(32).toString("hex");
+
+    console.log("[questionnaire] Inserting with token:", token.slice(0, 12) + "...");
 
     const { data, error } = await supabaseAdmin
       .from("questionnaires")
@@ -16,22 +25,36 @@ export async function POST(req: Request) {
         client_name,
         client_email,
         engagement_type: engagement_type || "",
+        token,
         status: "sent",
+        answers: {},
       })
       .select("id, token")
       .single();
 
     if (error || !data) {
-      console.error("[questionnaire] Insert error:", error);
-      return NextResponse.json({ error: "Failed to create questionnaire" }, { status: 500 });
+      console.error("[questionnaire] Supabase insert error:", JSON.stringify(error, null, 2));
+      return NextResponse.json(
+        {
+          error: `Supabase insert failed: ${error?.message || "Unknown"}`,
+          code: error?.code || null,
+          details: error?.details || null,
+          hint: error?.hint || null,
+        },
+        { status: 500 }
+      );
     }
+
+    console.log("[questionnaire] Insert success. ID:", data.id);
 
     // Build questionnaire URL
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
     const questionnaireUrl = `${baseUrl}/questionnaire/${data.token}`;
 
-    // Send email to client
-    const html = `
+    // Send email — wrapped separately so email failure does not block record creation
+    let emailWarning: string | null = null;
+    try {
+      const html = `
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
@@ -71,17 +94,34 @@ export async function POST(req: Request) {
 </body>
 </html>`;
 
-    await sendEmail({
-      to: client_email,
-      subject: `Discovery Questionnaire - ${engagement_type || "Engagement"} - EngagementFlow`,
-      html,
-    });
+      await sendEmail({
+        to: client_email,
+        subject: `Discovery Questionnaire - ${engagement_type || "Engagement"} - EngagementFlow`,
+        html,
+      });
 
-    return NextResponse.json({ id: data.id, token: data.token });
+      console.log("[questionnaire] Email sent to:", client_email);
+    } catch (emailErr: unknown) {
+      const emailError = emailErr as Error;
+      console.error("[questionnaire] Email send failed (non-blocking):", emailError.message);
+      emailWarning = `Questionnaire created but email failed: ${emailError.message}`;
+    }
+
+    return NextResponse.json({
+      id: data.id,
+      token: data.token,
+      ...(emailWarning ? { warning: emailWarning } : {}),
+    });
   } catch (err: unknown) {
     const error = err as Error;
-    console.error("[questionnaire] Error:", error.message);
-    return NextResponse.json({ error: error.message || "Internal server error" }, { status: 500 });
+    console.error("[questionnaire] Unexpected error:", error.message, error.stack);
+    return NextResponse.json(
+      {
+        error: error.message || "Internal server error",
+        stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+      },
+      { status: 500 }
+    );
   }
 }
 
