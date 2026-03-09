@@ -8,6 +8,8 @@ import {
   AlertTriangle,
   FileDown,
   Loader2,
+  Send,
+  X,
 } from "lucide-react";
 import GlowButton from "@/components/ui/GlowButton";
 import { createClient } from "@/lib/supabase/client";
@@ -79,6 +81,12 @@ export default function ScopeCheckPage() {
   const [coLoading, setCoLoading] = useState(false);
   const [changeOrder, setChangeOrder] = useState<ChangeOrderData | null>(null);
   const [coPdfBase64, setCoPdfBase64] = useState("");
+
+  const [sendModalOpen, setSendModalOpen] = useState(false);
+  const [sendEmail, setSendEmail] = useState("");
+  const [sendMessage, setSendMessage] = useState("");
+  const [sendLoading, setSendLoading] = useState(false);
+  const [sendResult, setSendResult] = useState<string | null>(null);
 
   // Fetch SOWs
   useEffect(() => {
@@ -182,6 +190,59 @@ export default function ScopeCheckPage() {
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
+  };
+
+  const handleOpenSendModal = () => {
+    setSendEmail("");
+    setSendMessage("");
+    setSendResult(null);
+    setSendModalOpen(true);
+  };
+
+  const handleSendChangeOrder = async () => {
+    if (!sendEmail || !changeOrder || !coPdfBase64 || !selectedSow) return;
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(sendEmail)) {
+      setSendResult("Please enter a valid email address.");
+      return;
+    }
+
+    setSendLoading(true);
+    setSendResult(null);
+
+    try {
+      const res = await fetch("/api/scope-check/send-change-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          recipient_email: sendEmail,
+          personal_message: sendMessage || undefined,
+          change_order_number: changeOrder.change_order_number,
+          date: changeOrder.date,
+          original_sow_title: changeOrder.original_sow_title,
+          original_sow_customer: changeOrder.original_sow_customer,
+          sow_id: selectedSow.id,
+          line_items: changeOrder.line_items,
+          total_min: changeOrder.total_min,
+          total_max: changeOrder.total_max,
+          currency: changeOrder.currency,
+          pdf_base64: coPdfBase64,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setSendResult("Change Order sent successfully.");
+      } else {
+        setSendResult(data.error || "Failed to send Change Order.");
+      }
+    } catch {
+      setSendResult("Something went wrong. Please try again.");
+    }
+
+    setSendLoading(false);
   };
 
   const riskConfig = result ? RISK_CONFIG[result.risk_level] || RISK_CONFIG.low : null;
@@ -377,13 +438,22 @@ export default function ScopeCheckPage() {
                   </div>
                 </div>
                 {coPdfBase64 && (
-                  <button
-                    onClick={handleDownloadCoPdf}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium bg-[#F3F0FF] text-[#9333EA] hover:bg-[#E9D5FF] transition-colors"
-                  >
-                    <FileDown size={14} />
-                    Download PDF
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleOpenSendModal}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium bg-[#9333EA] text-white hover:bg-[#7E22CE] transition-colors"
+                    >
+                      <Send size={14} />
+                      Send to Client
+                    </button>
+                    <button
+                      onClick={handleDownloadCoPdf}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium bg-[#F3F0FF] text-[#9333EA] hover:bg-[#E9D5FF] transition-colors"
+                    >
+                      <FileDown size={14} />
+                      Download PDF
+                    </button>
+                  </div>
                 )}
               </div>
 
@@ -429,6 +499,131 @@ export default function ScopeCheckPage() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Send to Client Modal */}
+      {sendModalOpen && changeOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setSendModalOpen(false)}
+          />
+          <div className="relative bg-white rounded-[2rem] shadow-2xl p-8 w-full max-w-lg mx-4 max-h-[85vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Send Change Order to Client</h2>
+                <p className="text-sm text-gray-500 mt-0.5">
+                  {changeOrder.change_order_number} for {changeOrder.original_sow_customer}
+                </p>
+              </div>
+              <button
+                onClick={() => setSendModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Change Order Preview */}
+            <div className="bg-[#F9F8FF] rounded-xl border border-gray-200 p-4 mb-6">
+              <p className="text-xs font-semibold uppercase tracking-widest text-[#9333EA] mb-3">Summary</p>
+              <div className="space-y-2">
+                {changeOrder.line_items.map((li, i) => {
+                  const sym = changeOrder.currency === "USD" ? "$" : changeOrder.currency;
+                  return (
+                    <div key={i} className="flex items-center justify-between text-sm">
+                      <span className="text-gray-800 font-medium truncate mr-4">{li.item}</span>
+                      <span className="text-gray-500 flex-shrink-0">
+                        {li.hours_min}-{li.hours_max}h
+                        {li.rate > 0 && ` / ${sym}${li.rate.toLocaleString()}`}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="mt-3 pt-3 border-t border-gray-200 flex items-center justify-between">
+                <span className="text-xs font-semibold text-[#9333EA] uppercase">Total</span>
+                <span className="text-sm font-bold text-[#9333EA]">
+                  {changeOrder.currency === "USD" ? "$" : changeOrder.currency}
+                  {changeOrder.total_min.toLocaleString()} - {changeOrder.currency === "USD" ? "$" : changeOrder.currency}
+                  {changeOrder.total_max.toLocaleString()}
+                </span>
+              </div>
+            </div>
+
+            {/* Recipient Email */}
+            <div className="mb-4">
+              <label htmlFor="co-email" className="block text-sm font-medium text-gray-700 mb-1.5">
+                Recipient Email
+              </label>
+              <input
+                id="co-email"
+                type="email"
+                value={sendEmail}
+                onChange={(e) => {
+                  setSendEmail(e.target.value);
+                  setSendResult(null);
+                }}
+                placeholder="client@company.com"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#9333EA] focus:ring-2 focus:ring-[#9333EA]/20 transition-colors text-sm"
+                autoFocus
+              />
+            </div>
+
+            {/* Personal Message */}
+            <div className="mb-6">
+              <label htmlFor="co-message" className="block text-sm font-medium text-gray-700 mb-1.5">
+                Personal Message <span className="text-gray-400 font-normal">(optional)</span>
+              </label>
+              <textarea
+                id="co-message"
+                value={sendMessage}
+                onChange={(e) => setSendMessage(e.target.value)}
+                placeholder="Add a personal note to the client..."
+                rows={3}
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#9333EA] focus:ring-2 focus:ring-[#9333EA]/20 transition-colors text-sm resize-y"
+              />
+            </div>
+
+            {sendResult && (
+              <p
+                className={`mb-4 text-sm ${
+                  sendResult.includes("success") ? "text-emerald-600" : "text-red-500"
+                }`}
+              >
+                {sendResult}
+              </p>
+            )}
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setSendModalOpen(false)}
+                className="px-5 py-2.5 rounded-full text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <GlowButton
+                onClick={handleSendChangeOrder}
+                loading={sendLoading}
+                disabled={!sendEmail || sendResult?.includes("success")}
+              >
+                {sendLoading ? (
+                  "Sending..."
+                ) : sendResult?.includes("success") ? (
+                  <>
+                    <CheckCircle size={16} />
+                    Sent
+                  </>
+                ) : (
+                  <>
+                    <Send size={16} />
+                    Send Change Order
+                  </>
+                )}
+              </GlowButton>
+            </div>
+          </div>
         </div>
       )}
     </div>
