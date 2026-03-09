@@ -3,13 +3,14 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, FileText, BookOpen, Settings, Users, LogOut, ShieldAlert, HeartPulse, RefreshCw } from "lucide-react";
+import { LayoutDashboard, FileText, BookOpen, Settings, Users, LogOut, ShieldAlert, HeartPulse, RefreshCw, ClipboardList } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "SOWs", href: "/sows", icon: FileText },
   { label: "Catalog", href: "/catalog", icon: BookOpen },
+  { label: "Questionnaire", href: "/questionnaire", icon: ClipboardList },
   { label: "Scope Check", href: "/scope-check", icon: ShieldAlert },
   { label: "Health", href: "/health", icon: HeartPulse },
   { label: "Renewals", href: "/renewals", icon: RefreshCw },

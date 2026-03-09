@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Shield, Clock, FileText } from "lucide-react";
+import { Check, Shield, Clock, FileText, ClipboardList, ChevronDown } from "lucide-react";
 import GlowButton from "@/components/ui/GlowButton";
 import { ShineBorder } from "@/components/ui/shine-border";
 import { SOW_TEMPLATES } from "@/lib/sow-templates";
@@ -15,12 +15,54 @@ const TEMPLATE_ICONS: Record<string, typeof Shield> = {
   complianceforge: FileText,
 };
 
+interface CompletedQuestionnaire {
+  id: string;
+  client_name: string;
+  engagement_type: string;
+}
+
 export default function NewSOWPage() {
   const router = useRouter();
   const [transcript, setTranscript] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [completedQs, setCompletedQs] = useState<CompletedQuestionnaire[]>([]);
+  const [qDropdownOpen, setQDropdownOpen] = useState(false);
+  const [qLoading, setQLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchCompleted = async () => {
+      try {
+        const res = await fetch("/api/questionnaire");
+        if (res.ok) {
+          const data = await res.json();
+          const completed = (data.questionnaires || []).filter(
+            (q: { status: string }) => q.status === "completed"
+          );
+          setCompletedQs(completed);
+        }
+      } catch {
+        // silent
+      }
+    };
+    fetchCompleted();
+  }, []);
+
+  const handleUseQuestionnaire = async (id: string) => {
+    setQLoading(true);
+    setQDropdownOpen(false);
+    try {
+      const res = await fetch(`/api/questionnaire/${id}/use`);
+      if (res.ok) {
+        const data = await res.json();
+        setTranscript(data.transcript);
+      }
+    } catch {
+      // silent
+    }
+    setQLoading(false);
+  };
 
   const handleGenerate = async () => {
     if (!transcript.trim()) return;
@@ -121,7 +163,38 @@ export default function NewSOWPage() {
 
       {/* Transcript Input */}
       <div className="bg-white rounded-[2rem] border border-gray-100 shadow-sm p-12">
-        <h2 className="text-lg font-semibold text-gray-900 mb-1">Call Transcript</h2>
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="text-lg font-semibold text-gray-900">Call Transcript</h2>
+          {completedQs.length > 0 && (
+            <div className="relative">
+              <button
+                onClick={() => setQDropdownOpen(!qDropdownOpen)}
+                disabled={qLoading}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium bg-[#F3F0FF] text-[#9333EA] hover:bg-[#E9D5FF] transition-colors disabled:opacity-50"
+              >
+                <ClipboardList size={13} />
+                {qLoading ? "Loading..." : "Use Questionnaire"}
+                <ChevronDown size={12} />
+              </button>
+              {qDropdownOpen && (
+                <div className="absolute right-0 top-full mt-1 w-64 bg-white rounded-xl border border-gray-200 shadow-lg z-20 py-1 max-h-48 overflow-y-auto">
+                  {completedQs.map((q) => (
+                    <button
+                      key={q.id}
+                      onClick={() => handleUseQuestionnaire(q.id)}
+                      className="w-full text-left px-4 py-2.5 hover:bg-[#F9F8FF] transition-colors"
+                    >
+                      <p className="text-sm font-medium text-gray-900 truncate">{q.client_name}</p>
+                      {q.engagement_type && (
+                        <p className="text-xs text-gray-400 truncate">{q.engagement_type}</p>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
         <p className="text-gray-500 text-sm mb-6">Paste your call transcript below and we&apos;ll extract the key details automatically.</p>
 
         <textarea
