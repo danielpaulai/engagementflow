@@ -6,6 +6,7 @@ import Link from "next/link";
 import {
   ArrowLeft,
   Download,
+  FileDown,
   Clock,
   DollarSign,
   MapPin,
@@ -141,6 +142,7 @@ export default function SOWDetailPage() {
   const [editing, setEditing] = useState<string | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfError, setPdfError] = useState("");
+  const [docxLoading, setDocxLoading] = useState(false);
   const [reviewLoading, setReviewLoading] = useState(false);
   const [reviewModalOpen, setReviewModalOpen] = useState(false);
   const [reviewerEmail, setReviewerEmail] = useState("");
@@ -178,6 +180,33 @@ export default function SOWDetailPage() {
     }
 
     setPdfLoading(false);
+  };
+
+  const handleDownloadDocx = async () => {
+    if (!sow) return;
+    setDocxLoading(true);
+
+    try {
+      const res = await fetch(`/api/sows/${sow.id}/docx`);
+      if (!res.ok) {
+        setDocxLoading(false);
+        return;
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${(sow.project_title || "SOW").replace(/[^a-zA-Z0-9 ]/g, "").replace(/\s+/g, "_")}.docx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch {
+      // silent fail
+    }
+
+    setDocxLoading(false);
   };
 
   const handleSendForReview = () => {
@@ -322,6 +351,14 @@ export default function SOWDetailPage() {
           >
             <History size={16} />
             Versions
+          </button>
+          <button
+            onClick={handleDownloadDocx}
+            disabled={docxLoading}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-medium bg-white text-gray-600 border border-gray-200 hover:border-[#9333EA] hover:text-[#9333EA] transition-colors disabled:opacity-50"
+          >
+            <FileDown size={16} />
+            {docxLoading ? "Exporting..." : "Export to Word"}
           </button>
           <GlowButton onClick={handleDownloadPdf} loading={pdfLoading}>
             <Download size={16} />
