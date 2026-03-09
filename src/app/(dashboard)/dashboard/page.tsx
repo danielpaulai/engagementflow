@@ -13,8 +13,10 @@ import {
   XCircle,
   Plus,
   Activity,
+  HeartPulse,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { calculateHealthScore } from "@/lib/health-score";
 
 interface SOWRecord {
   id: string;
@@ -94,10 +96,18 @@ function parseBudget(budget: string): number {
   return parseFloat(cleaned) || 0;
 }
 
+interface CriticalAlert {
+  id: string;
+  customer_name: string;
+  project_title: string;
+  score: number;
+}
+
 export default function DashboardPage() {
   const [sows, setSows] = useState<SOWRecord[]>([]);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [criticalAlerts, setCriticalAlerts] = useState<CriticalAlert[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -164,6 +174,32 @@ export default function DashboardPage() {
       // Sort by time desc and take top 10
       items.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
       setActivities(items.slice(0, 10));
+
+      // Calculate health scores for critical alerts
+      const activeSowsForHealth = fetchedSows.filter(
+        (s) => s.status !== "signed" && s.status !== "rejected"
+      );
+      const alerts: CriticalAlert[] = [];
+      for (const s of activeSowsForHealth) {
+        const hs = calculateHealthScore({
+          created_at: s.created_at,
+          updated_at: s.updated_at,
+          status: s.status,
+          version_count: 0,
+          pending_approval_days: null,
+        });
+        if (hs.score < 5) {
+          alerts.push({
+            id: s.id,
+            customer_name: s.customer_name,
+            project_title: s.project_title,
+            score: hs.score,
+          });
+        }
+      }
+      alerts.sort((a, b) => a.score - b.score);
+      setCriticalAlerts(alerts);
+
       setLoading(false);
     };
 
@@ -226,6 +262,34 @@ export default function DashboardPage() {
           <p className="text-gray-400 mt-3 text-lg">Manage your SOWs, track engagement, and close deals faster.</p>
         </div>
       </div>
+
+      {/* Critical Health Alerts */}
+      {criticalAlerts.length > 0 && (
+        <div className="mb-8 rounded-2xl border border-red-200 bg-red-50 p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <HeartPulse size={18} className="text-[#DC2626]" />
+            <h2 className="text-sm font-semibold text-[#DC2626]">Critical Health Alerts</h2>
+          </div>
+          <div className="space-y-2">
+            {criticalAlerts.map((alert) => (
+              <Link
+                key={alert.id}
+                href="/health"
+                className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-white border border-red-100 hover:border-red-300 transition-colors group"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-lg font-bold text-[#DC2626]">{alert.score}</span>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{alert.customer_name}</p>
+                    <p className="text-xs text-gray-400">{alert.project_title}</p>
+                  </div>
+                </div>
+                <ArrowRight size={14} className="text-gray-300 group-hover:text-[#DC2626] transition-colors" />
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Metric cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">

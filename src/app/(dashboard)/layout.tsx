@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, FileText, BookOpen, Settings, Users, LogOut, ShieldAlert } from "lucide-react";
+import { LayoutDashboard, FileText, BookOpen, Settings, Users, LogOut, ShieldAlert, HeartPulse } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 const navItems = [
@@ -11,6 +11,7 @@ const navItems = [
   { label: "SOWs", href: "/sows", icon: FileText },
   { label: "Catalog", href: "/catalog", icon: BookOpen },
   { label: "Scope Check", href: "/scope-check", icon: ShieldAlert },
+  { label: "Health", href: "/health", icon: HeartPulse },
   { label: "CSM", href: "/csm", icon: Users },
   { label: "Settings", href: "/settings", icon: Settings },
 ];

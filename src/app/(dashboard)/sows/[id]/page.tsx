@@ -21,6 +21,12 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import GlowButton from "@/components/ui/GlowButton";
+import {
+  calculateHealthScore,
+  HEALTH_COLORS,
+  HEALTH_LABELS,
+  type HealthScoreResult,
+} from "@/lib/health-score";
 
 interface Deliverable {
   name: string;
@@ -151,6 +157,7 @@ export default function SOWDetailPage() {
   const [versionsOpen, setVersionsOpen] = useState(false);
   const [versionsLoading, setVersionsLoading] = useState(false);
   const [previewVersion, setPreviewVersion] = useState<SOWVersion | null>(null);
+  const [healthScore, setHealthScore] = useState<HealthScoreResult | null>(null);
 
   const handleDownloadPdf = async () => {
     if (!sow) return;
@@ -251,7 +258,36 @@ export default function SOWDetailPage() {
     const fetchSOW = async () => {
       const supabase = createClient();
       const { data } = await supabase.from("sows").select("*").eq("id", id).single();
-      if (data) setSow(data as SOW);
+      if (data) {
+        const sowData = data as SOW & { updated_at?: string };
+        setSow(sowData);
+
+        // Calculate health score
+        const { data: vData } = await supabase
+          .from("sow_versions")
+          .select("id")
+          .eq("sow_id", id);
+
+        const { data: aData } = await supabase
+          .from("approvals")
+          .select("created_at")
+          .eq("sow_id", id)
+          .eq("status", "pending");
+
+        let pendingDays: number | null = null;
+        if (aData && aData.length > 0) {
+          pendingDays = Math.floor((Date.now() - new Date(aData[0].created_at).getTime()) / 86400000);
+        }
+
+        const hs = calculateHealthScore({
+          created_at: sowData.created_at,
+          updated_at: sowData.updated_at,
+          status: sowData.status,
+          version_count: vData?.length || 0,
+          pending_approval_days: pendingDays,
+        });
+        setHealthScore(hs);
+      }
       setLoading(false);
     };
     fetchSOW();
@@ -338,6 +374,16 @@ export default function SOWDetailPage() {
               </GlowButton>
             </Link>
           )}
+          {healthScore && (() => {
+            const hc = HEALTH_COLORS[healthScore.status];
+            const hl = HEALTH_LABELS[healthScore.status];
+            return (
+              <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${hc.text} ${hc.bg} ${hc.border}`}>
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: hc.fill }} />
+                {healthScore.score} - {hl}
+              </div>
+            );
+          })()}
           <button
             onClick={() => {
               setVersionsOpen(!versionsOpen);
