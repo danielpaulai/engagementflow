@@ -10,6 +10,7 @@ import {
   Clock,
   DollarSign,
   MapPin,
+  Calendar,
   CheckCircle,
   Pencil,
   Check,
@@ -47,6 +48,7 @@ interface SOW {
   special_requirements: string;
   status: string;
   created_at: string;
+  renewal_date?: string | null;
 }
 
 interface SOWVersion {
@@ -462,7 +464,7 @@ export default function SOWDetailPage() {
       {/* Executive Summary */}
       <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 mb-6 p-8">
         <h2 className="text-xs font-semibold uppercase tracking-widest text-[#9333EA] mb-4">Executive Summary</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
           <div className="rounded-2xl bg-[#F9F8FF] border border-gray-100 p-5">
             <p className="text-xs text-gray-400 uppercase tracking-wide mb-2">Timeline</p>
             <div className="flex items-center gap-2">
@@ -510,6 +512,35 @@ export default function SOWDetailPage() {
               ) : (
                 <span className="text-gray-800 font-semibold cursor-pointer hover:text-[#9333EA]" onClick={() => setEditing("region")}>
                   {sow.region || "Not specified"}
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="rounded-2xl bg-[#F9F8FF] border border-gray-100 p-5">
+            <p className="text-xs text-gray-400 uppercase tracking-wide mb-2">Renewal Date</p>
+            <div className="flex items-center gap-2">
+              <Calendar size={14} className="text-gray-400" />
+              {editing === "renewal_date" ? (
+                <div className="flex items-start gap-2">
+                  <input
+                    type="date"
+                    defaultValue={sow.renewal_date || ""}
+                    onChange={(e) => {
+                      const val = e.target.value || null;
+                      updateField("renewal_date", val);
+                    }}
+                    className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#9333EA]/20 focus:border-[#9333EA]"
+                    autoFocus
+                  />
+                  <button onClick={() => setEditing(null)} className="text-gray-400 hover:text-gray-600 p-1">
+                    <X size={16} />
+                  </button>
+                </div>
+              ) : (
+                <span className="text-gray-800 font-semibold cursor-pointer hover:text-[#9333EA]" onClick={() => setEditing("renewal_date")}>
+                  {sow.renewal_date
+                    ? new Date(sow.renewal_date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
+                    : "Not set"}
                 </span>
               )}
             </div>

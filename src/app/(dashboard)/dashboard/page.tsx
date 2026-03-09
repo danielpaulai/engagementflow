@@ -14,6 +14,7 @@ import {
   Plus,
   Activity,
   HeartPulse,
+  RefreshCw,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { calculateHealthScore } from "@/lib/health-score";
@@ -108,6 +109,8 @@ export default function DashboardPage() {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [criticalAlerts, setCriticalAlerts] = useState<CriticalAlert[]>([]);
+  const [renewals30, setRenewals30] = useState(0);
+  const [renewals60, setRenewals60] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -116,7 +119,7 @@ export default function DashboardPage() {
       // Fetch SOWs
       const { data: sowData } = await supabase
         .from("sows")
-        .select("id, project_title, customer_name, status, budget_mentioned, created_at")
+        .select("id, project_title, customer_name, status, budget_mentioned, created_at, renewal_date")
         .order("created_at", { ascending: false });
 
       const fetchedSows = (sowData || []) as SOWRecord[];
@@ -199,6 +202,21 @@ export default function DashboardPage() {
       }
       alerts.sort((a, b) => a.score - b.score);
       setCriticalAlerts(alerts);
+
+      // Renewal counts
+      const now30 = Date.now() + 30 * 86400000;
+      const now60 = Date.now() + 60 * 86400000;
+      let r30 = 0;
+      let r60 = 0;
+      for (const s of fetchedSows) {
+        const rd = (s as SOWRecord & { renewal_date?: string | null }).renewal_date;
+        if (!rd || s.status === "rejected") continue;
+        const rdTime = new Date(rd).getTime();
+        if (rdTime >= Date.now() && rdTime <= now30) r30++;
+        if (rdTime >= Date.now() && rdTime <= now60) r60++;
+      }
+      setRenewals30(r30);
+      setRenewals60(r60);
 
       setLoading(false);
     };
@@ -287,6 +305,35 @@ export default function DashboardPage() {
                 <ArrowRight size={14} className="text-gray-300 group-hover:text-[#DC2626] transition-colors" />
               </Link>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Renewals Summary */}
+      {(renewals30 > 0 || renewals60 > 0) && (
+        <div className="mb-8 rounded-2xl border border-[#9333EA]/20 bg-[#F3F0FF] p-5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <RefreshCw size={18} className="text-[#9333EA]" />
+              <h2 className="text-sm font-semibold text-[#9333EA]">Upcoming Renewals</h2>
+            </div>
+            <Link
+              href="/renewals"
+              className="flex items-center gap-1 text-xs font-medium text-[#9333EA] hover:text-[#7E22CE] transition-colors"
+            >
+              View all
+              <ArrowRight size={12} />
+            </Link>
+          </div>
+          <div className="flex items-center gap-6 mt-3">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-bold tracking-tighter text-[#DC2626]">{renewals30}</span>
+              <span className="text-xs text-gray-600">due in 30 days</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-bold tracking-tighter text-[#EA580C]">{renewals60}</span>
+              <span className="text-xs text-gray-600">due in 60 days</span>
+            </div>
           </div>
         </div>
       )}
