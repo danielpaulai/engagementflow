@@ -294,6 +294,16 @@ export async function POST(req: Request) {
       date: dateStr,
     });
 
+    console.log("[weekly-snapshot] Sending snapshot to:", email);
+    console.log("[weekly-snapshot] Data summary:", {
+      activeSows: activeSows.length,
+      pipelineValue: formatCurrency(pipelineValue),
+      atRiskCount,
+      renewalsDue: renewalsDue.length,
+      criticalAlerts: criticalAlerts.length,
+      stuckApprovals: stuckApprovals.length,
+    });
+
     await sendEmail({
       to: email,
       subject: `Your EngagementFlow Weekly Snapshot - ${dateStr}`,
@@ -301,8 +311,28 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error("Weekly snapshot error:", err);
-    return NextResponse.json({ error: "Failed to send snapshot" }, { status: 500 });
+  } catch (err: unknown) {
+    const error = err as Error & { resendError?: unknown };
+    console.error("[weekly-snapshot] Full error:", error);
+    console.error("[weekly-snapshot] Error message:", error.message);
+    console.error("[weekly-snapshot] Error stack:", error.stack);
+    if (error.resendError) {
+      console.error("[weekly-snapshot] Resend error detail:", JSON.stringify(error.resendError, null, 2));
+    }
+
+    const errorMessage = error.message || "Unknown error";
+    const resendDetail = error.resendError ? JSON.stringify(error.resendError) : null;
+
+    return NextResponse.json(
+      {
+        error: errorMessage,
+        resend_error: resendDetail,
+        debug: {
+          has_api_key: !!process.env.RESEND_API_KEY,
+          api_key_prefix: process.env.RESEND_API_KEY?.slice(0, 8) || "MISSING",
+        },
+      },
+      { status: 500 }
+    );
   }
 }

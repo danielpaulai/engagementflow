@@ -9,6 +9,10 @@ interface SendEmailParams {
 }
 
 export async function sendEmail({ to, subject, html }: SendEmailParams) {
+  console.log("[sendEmail] Sending to:", to, "| Subject:", subject);
+  console.log("[sendEmail] RESEND_API_KEY present:", !!process.env.RESEND_API_KEY);
+  console.log("[sendEmail] RESEND_API_KEY prefix:", process.env.RESEND_API_KEY?.slice(0, 8) || "MISSING");
+
   const { data, error } = await resend.emails.send({
     from: "EngagementFlow <onboarding@resend.dev>",
     to,
@@ -17,10 +21,13 @@ export async function sendEmail({ to, subject, html }: SendEmailParams) {
   });
 
   if (error) {
-    console.error("Resend email error:", error);
-    throw error;
+    console.error("[sendEmail] Resend error:", JSON.stringify(error, null, 2));
+    const err = new Error(`Resend error: ${error.message || JSON.stringify(error)}`);
+    (err as Error & { resendError: unknown }).resendError = error;
+    throw err;
   }
 
+  console.log("[sendEmail] Success. Email ID:", data?.id);
   return data;
 }
 
