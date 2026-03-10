@@ -4,7 +4,8 @@
       "Bash(npm run:*)",
       "Bash(git:*)",
       "Bash(curl -s -X POST https://api.fireflies.ai/graphql \\\\\n  -H \"Content-Type: application/json\" \\\\\n  -H \"Authorization: Bearer 62e57be9-d693-423f-8021-05624048e688\" \\\\\n  -d '{\"query\":\"{ transcripts\\(limit: 1\\) { id title } }\"}')",
-      "Bash(curl -s -X POST https://api.fireflies.ai/graphql \\\\\n  -H \"Content-Type: application/json\" \\\\\n  -H \"Authorization: Bearer 7d48e66a-8e98-4aaa-9898-9c628efe0308\" \\\\\n  -d '{\"query\":\"{ transcripts\\(limit: 1\\) { id title } }\"}')"
+      "Bash(curl -s -X POST https://api.fireflies.ai/graphql \\\\\n  -H \"Content-Type: application/json\" \\\\\n  -H \"Authorization: Bearer 7d48e66a-8e98-4aaa-9898-9c628efe0308\" \\\\\n  -d '{\"query\":\"{ transcripts\\(limit: 1\\) { id title } }\"}')",
+      "Bash(npx tsc:*)"
     ]
   }
 }

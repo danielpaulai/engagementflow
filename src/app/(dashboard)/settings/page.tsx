@@ -25,6 +25,8 @@ export default function SettingsPage() {
   const [testResult, setTestResult] = useState<string | null>(null);
   const [ffTesting, setFfTesting] = useState(false);
   const [ffTestResult, setFfTestResult] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState("");
+  const [maskedKey, setMaskedKey] = useState("");
 
   useEffect(() => {
     const fetchPrefs = async () => {
@@ -45,12 +47,16 @@ export default function SettingsPage() {
         .single();
 
       if (data) {
+        const ffKey = data.fireflies_api_key || "";
         setPrefs({
           id: data.id,
           weekly_snapshot_enabled: data.weekly_snapshot_enabled ?? true,
           weekly_snapshot_email: data.weekly_snapshot_email || user.email || "",
-          fireflies_api_key: data.fireflies_api_key || "",
+          fireflies_api_key: ffKey,
         });
+        if (ffKey) {
+          setMaskedKey(ffKey.substring(0, 8) + "••••••••");
+        }
       } else {
         setPrefs({
           weekly_snapshot_enabled: true,
@@ -68,6 +74,7 @@ export default function SettingsPage() {
   const handleSave = async () => {
     setSaving(true);
     setSaved(false);
+    setSaveError("");
 
     const supabase = createClient();
     const {
@@ -76,11 +83,14 @@ export default function SettingsPage() {
 
     if (!user) {
       setSaving(false);
+      setSaveError("You must be logged in to save settings.");
       return;
     }
 
+    let error;
+
     if (prefs.id) {
-      await supabase
+      ({ error } = await supabase
         .from("user_preferences")
         .update({
           weekly_snapshot_enabled: prefs.weekly_snapshot_enabled,
@@ -88,9 +98,9 @@ export default function SettingsPage() {
           fireflies_api_key: prefs.fireflies_api_key,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", prefs.id);
+        .eq("id", prefs.id));
     } else {
-      const { data } = await supabase
+      const { data, error: insertError } = await supabase
         .from("user_preferences")
         .insert({
           user_id: user.id,
@@ -101,12 +111,26 @@ export default function SettingsPage() {
         .select("id")
         .single();
 
+      error = insertError;
       if (data) {
         setPrefs({ ...prefs, id: data.id });
       }
     }
 
     setSaving(false);
+
+    if (error) {
+      setSaveError(error.message || "Failed to save settings.");
+      return;
+    }
+
+    // Update masked key display
+    if (prefs.fireflies_api_key) {
+      setMaskedKey(prefs.fireflies_api_key.substring(0, 8) + "••••••••");
+    } else {
+      setMaskedKey("");
+    }
+
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -306,14 +330,33 @@ export default function SettingsPage() {
           >
             API Key
           </label>
-          <input
-            id="ff-key"
-            type="password"
-            value={prefs.fireflies_api_key}
-            onChange={(e) => setPrefs({ ...prefs, fireflies_api_key: e.target.value })}
-            placeholder="Enter your Fireflies.ai API key"
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#9333EA] focus:ring-2 focus:ring-[#9333EA]/20 transition-colors text-sm"
-          />
+          {maskedKey && prefs.fireflies_api_key && (
+            <p className="text-xs text-gray-500 mb-1.5 font-mono">
+              Saved: {maskedKey}
+            </p>
+          )}
+          <div className="flex gap-2">
+            <input
+              id="ff-key"
+              type="password"
+              value={prefs.fireflies_api_key}
+              onChange={(e) => setPrefs({ ...prefs, fireflies_api_key: e.target.value })}
+              placeholder="Enter your Fireflies.ai API key"
+              className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#9333EA] focus:ring-2 focus:ring-[#9333EA]/20 transition-colors text-sm"
+            />
+            {prefs.fireflies_api_key && (
+              <button
+                onClick={() => {
+                  setPrefs({ ...prefs, fireflies_api_key: "" });
+                  setMaskedKey("");
+                  setFfTestResult(null);
+                }}
+                className="px-4 py-3 rounded-xl border border-gray-200 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
+              >
+                Clear
+              </button>
+            )}
+          </div>
           <p className="text-xs text-gray-400 mt-1.5">
             Find your API key at fireflies.ai/account/apps
           </p>
@@ -351,20 +394,28 @@ export default function SettingsPage() {
       </div>
 
       {/* Save Button */}
-      <div className="flex items-center gap-3">
-        <GlowButton onClick={handleSave} loading={saving}>
-          {saved ? (
-            <>
-              <Check size={16} />
-              Saved
-            </>
-          ) : saving ? (
-            "Saving..."
-          ) : (
-            "Save Settings"
-          )}
-        </GlowButton>
-        {saved && <span className="text-xs text-emerald-600">Preferences saved successfully.</span>}
+      <div>
+        <div className="flex items-center gap-3">
+          <GlowButton onClick={handleSave} loading={saving}>
+            {saved ? (
+              <>
+                <Check size={16} />
+                Saved!
+              </>
+            ) : saving ? (
+              <>
+                <Loader2 size={16} className="animate-spin" />
+                Saving...
+              </>
+            ) : (
+              "Save Settings"
+            )}
+          </GlowButton>
+          {saved && <span className="text-xs text-emerald-600">Settings saved</span>}
+        </div>
+        {saveError && (
+          <p className="mt-2 text-xs text-red-500">{saveError}</p>
+        )}
       </div>
     </div>
   );
