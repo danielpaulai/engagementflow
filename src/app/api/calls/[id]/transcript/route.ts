@@ -13,9 +13,16 @@ export async function GET(
     const apiKey = searchParams.get("api_key");
     const { id } = params;
 
+    console.log("Transcript ID:", id);
+
     if (!apiKey) {
       return NextResponse.json({ error: "Fireflies API key is required" }, { status: 400 });
     }
+
+    console.log("Key prefix:", apiKey.substring(0, 8));
+
+    const query = buildTranscriptQuery(id);
+    console.log("Query:", query);
 
     const res = await fetch("https://api.fireflies.ai/graphql", {
       method: "POST",
@@ -23,23 +30,25 @@ export async function GET(
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({ query: buildTranscriptQuery(id) }),
+      body: JSON.stringify({ query }),
     });
 
+    const rawBody = await res.text();
+    console.log("Fireflies raw response status:", res.status);
+    console.log("Fireflies raw response:", rawBody);
+
     if (!res.ok) {
-      const errorBody = await res.text();
-      console.error("[transcript] Fireflies API error:", res.status, errorBody);
       return NextResponse.json(
-        { error: `Fireflies API error: ${res.status}`, details: errorBody },
+        { error: `Fireflies API error: ${res.status}`, details: rawBody },
         { status: res.status }
       );
     }
 
-    const json = await res.json();
+    const json = JSON.parse(rawBody);
 
     if (json.errors) {
       return NextResponse.json(
-        { error: json.errors[0]?.message || "Fireflies GraphQL error" },
+        { error: json.errors[0]?.message || "Fireflies GraphQL error", details: json.errors },
         { status: 400 }
       );
     }
