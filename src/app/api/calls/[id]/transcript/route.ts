@@ -13,7 +13,9 @@ export async function GET(
       return NextResponse.json({ error: "Fireflies API key is required" }, { status: 400 });
     }
 
-    const query = `{ transcript(id: "${id}") { id title sentences { speaker_name raw_words } } }`;
+    console.log("[transcript] Requesting transcript ID:", id);
+
+    const query = `{ transcript(id: "${id}") { id title sentences { speaker_name text } } }`;
 
     const res = await fetch("https://api.fireflies.ai/graphql", {
       method: "POST",
@@ -24,19 +26,22 @@ export async function GET(
       body: JSON.stringify({ query }),
     });
 
+    const rawBody = await res.text();
+    console.log("[transcript] Fireflies status:", res.status);
+    console.log("[transcript] Fireflies response:", rawBody);
+
     if (!res.ok) {
-      const errorBody = await res.text();
       return NextResponse.json(
-        { error: `Fireflies API error: ${res.status}`, details: errorBody },
+        { error: `Fireflies API error: ${res.status}`, details: rawBody },
         { status: res.status }
       );
     }
 
-    const json = await res.json();
+    const json = JSON.parse(rawBody);
 
     if (json.errors) {
       return NextResponse.json(
-        { error: json.errors[0]?.message || "Fireflies GraphQL error" },
+        { error: json.errors[0]?.message || "Fireflies GraphQL error", details: json.errors },
         { status: 400 }
       );
     }
@@ -47,9 +52,9 @@ export async function GET(
     }
 
     // Format as readable transcript: "SpeakerName: words\n" per line
-    const sentences = (transcript.sentences || []) as { speaker_name: string; raw_words: string }[];
+    const sentences = (transcript.sentences || []) as { speaker_name: string; text: string }[];
     const formatted = sentences
-      .map((s) => `${s.speaker_name}: ${s.raw_words}`)
+      .map((s) => `${s.speaker_name}: ${s.text}`)
       .join("\n");
 
     return NextResponse.json({ transcript: formatted, title: transcript.title });
