@@ -1,18 +1,8 @@
 import { NextResponse } from "next/server";
 
-const TRANSCRIPT_QUERY = `
-  query GetTranscript($id: String!) {
-    transcript(id: $id) {
-      id
-      title
-      date
-      sentences {
-        speaker_name
-        raw_words
-      }
-    }
-  }
-`;
+function buildTranscriptQuery(id: string) {
+  return `{ transcript(id: "${id}") { id title sentences { speaker_name raw_words } } }`;
+}
 
 export async function GET(
   req: Request,
@@ -33,15 +23,14 @@ export async function GET(
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({
-        query: TRANSCRIPT_QUERY,
-        variables: { id },
-      }),
+      body: JSON.stringify({ query: buildTranscriptQuery(id) }),
     });
 
     if (!res.ok) {
+      const errorBody = await res.text();
+      console.error("[transcript] Fireflies API error:", res.status, errorBody);
       return NextResponse.json(
-        { error: `Fireflies API error: ${res.status}` },
+        { error: `Fireflies API error: ${res.status}`, details: errorBody },
         { status: res.status }
       );
     }
@@ -60,20 +49,11 @@ export async function GET(
       return NextResponse.json({ error: "Transcript not found" }, { status: 404 });
     }
 
-    // Format as readable transcript
+    // Format as readable transcript: "SpeakerName: words\n" per line
     const sentences = (transcript.sentences || []) as { speaker_name: string; raw_words: string }[];
-    let formatted = `[Call Recording - ${transcript.title}]\nDate: ${transcript.date}\n\n`;
-
-    let lastSpeaker = "";
-    for (const s of sentences) {
-      if (s.speaker_name !== lastSpeaker) {
-        if (lastSpeaker) formatted += "\n\n";
-        formatted += `${s.speaker_name}: ${s.raw_words}`;
-        lastSpeaker = s.speaker_name;
-      } else {
-        formatted += ` ${s.raw_words}`;
-      }
-    }
+    const formatted = sentences
+      .map((s) => `${s.speaker_name}: ${s.raw_words}`)
+      .join("\n");
 
     return NextResponse.json({ transcript: formatted, title: transcript.title });
   } catch (err: unknown) {
