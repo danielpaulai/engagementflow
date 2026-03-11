@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 interface AnimatedCounterProps {
   value: number;
@@ -18,9 +18,49 @@ export default function AnimatedCounter({ value, duration = 1200, prefix = '', s
   const [hasAnimated, setHasAnimated] = useState(false);
   const ref = useRef<HTMLSpanElement>(null);
 
-  useEffect(() => {
-    if (!ref.current || hasAnimated) return;
+  // Find the nearest scrollable ancestor card to observe instead of the span itself
+  // This avoids issues where the span is in viewport but parent has opacity: 0
+  const getObserveTarget = useCallback(() => {
+    if (!ref.current) return null;
+    // Walk up to find a reveal-on-scroll parent, fall back to the span
+    let el: HTMLElement | null = ref.current;
+    while (el) {
+      if (el.classList.contains('reveal-on-scroll') || el.classList.contains('reveal')) {
+        return el;
+      }
+      el = el.parentElement;
+    }
+    return ref.current;
+  }, []);
 
+  useEffect(() => {
+    if (hasAnimated || !ref.current) return;
+
+    const target = getObserveTarget();
+    if (!target) return;
+
+    // If the target has a reveal class, wait for is-visible before starting
+    const hasReveal = target.classList.contains('reveal-on-scroll') || target.classList.contains('reveal');
+
+    if (hasReveal && target.classList.contains('is-visible')) {
+      // Already visible
+      setHasAnimated(true);
+      return;
+    }
+
+    if (hasReveal) {
+      // Watch for the is-visible class being added
+      const mo = new MutationObserver(() => {
+        if (target.classList.contains('is-visible')) {
+          setHasAnimated(true);
+          mo.disconnect();
+        }
+      });
+      mo.observe(target, { attributes: true, attributeFilter: ['class'] });
+      return () => mo.disconnect();
+    }
+
+    // No reveal parent — use standard IntersectionObserver
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -30,10 +70,9 @@ export default function AnimatedCounter({ value, duration = 1200, prefix = '', s
       },
       { threshold: 0.1 }
     );
-
-    observer.observe(ref.current);
+    observer.observe(target);
     return () => observer.disconnect();
-  }, [hasAnimated]);
+  }, [hasAnimated, getObserveTarget]);
 
   useEffect(() => {
     if (!hasAnimated) return;
