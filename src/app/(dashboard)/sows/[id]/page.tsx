@@ -161,6 +161,8 @@ export default function SOWDetailPage() {
   const [versionsLoading, setVersionsLoading] = useState(false);
   const [previewVersion, setPreviewVersion] = useState<SOWVersion | null>(null);
   const [healthScore, setHealthScore] = useState<HealthScoreResult | null>(null);
+  const [signModalOpen, setSignModalOpen] = useState(false);
+  const [signLoading, setSignLoading] = useState(false);
 
   const handleDownloadPdf = async () => {
     if (!sow) return;
@@ -255,6 +257,28 @@ export default function SOWDetailPage() {
     }
 
     setReviewLoading(false);
+  };
+
+  const handleMarkAsSigned = async () => {
+    if (!sow) return;
+    setSignLoading(true);
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from("sows")
+        .update({ status: "signed", updated_at: new Date().toISOString() })
+        .eq("id", sow.id);
+
+      if (!error) {
+        setSow({ ...sow, status: "signed" });
+        setSignModalOpen(false);
+      }
+    } catch {
+      // silent fail
+    }
+
+    setSignLoading(false);
   };
 
   useEffect(() => {
@@ -376,6 +400,15 @@ export default function SOWDetailPage() {
                 Open Review
               </GlowButton>
             </Link>
+          )}
+          {sow.status === "approved" && (
+            <button
+              onClick={() => setSignModalOpen(true)}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 transition-colors"
+            >
+              <CheckCircle size={16} />
+              Mark as Signed
+            </button>
           )}
           {healthScore && (() => {
             const hc = HEALTH_COLORS[healthScore.status];
@@ -754,6 +787,48 @@ export default function SOWDetailPage() {
               <GlowButton onClick={handleConfirmSendForReview} loading={reviewLoading}>
                 {reviewLoading ? "Sending..." : "Confirm"}
               </GlowButton>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mark as Signed Modal */}
+      {signModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setSignModalOpen(false)}
+          />
+          <div className="relative bg-white rounded-[2rem] shadow-2xl p-8 w-full max-w-md mx-4">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center mb-4">
+              <CheckCircle size={24} className="text-emerald-600" />
+            </div>
+            <h2 className="text-lg font-semibold text-gray-900 mb-1">Mark as Signed</h2>
+            <p className="text-sm text-gray-500 mb-6">
+              Confirm this SOW has been signed by the client. This will move it to active status.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setSignModalOpen(false)}
+                className="px-5 py-2.5 rounded-full text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleMarkAsSigned}
+                disabled={signLoading}
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-full text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 transition-colors disabled:opacity-50"
+              >
+                {signLoading ? (
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                ) : (
+                  <CheckCircle size={16} />
+                )}
+                {signLoading ? "Updating..." : "Confirm Signed"}
+              </button>
             </div>
           </div>
         </div>
