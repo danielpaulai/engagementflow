@@ -14,6 +14,8 @@ export async function POST(
       return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
 
+    console.log("[approve] SOW ID:", params.id, "| Action:", action, "| Reviewer:", reviewer_email);
+
     // Insert approval record using RPC to bypass PostgREST schema cache
     const { error: approvalError } = await supabaseAdmin.rpc("insert_approval", {
       p_sow_id: params.id,
@@ -24,9 +26,11 @@ export async function POST(
     });
 
     if (approvalError) {
-      console.error("Approval insert error:", approvalError);
+      console.error("[approve] Approval insert error:", JSON.stringify(approvalError));
       return NextResponse.json({ error: "Failed to save approval" }, { status: 500 });
     }
+
+    console.log("[approve] Approval record inserted successfully");
 
     // Map action to SOW status
     const statusMap: Record<string, string> = {
@@ -35,15 +39,19 @@ export async function POST(
       rejected: "rejected",
     };
 
-    const { error: updateError } = await supabaseAdmin
+    const newStatus = statusMap[action];
+    const { data: updateData, error: updateError } = await supabaseAdmin
       .from("sows")
-      .update({ status: statusMap[action] })
-      .eq("id", params.id);
+      .update({ status: newStatus, updated_at: new Date().toISOString() })
+      .eq("id", params.id)
+      .select("id, status");
 
     if (updateError) {
-      console.error("SOW status update error:", updateError);
+      console.error("[approve] SOW status update error:", JSON.stringify(updateError));
       return NextResponse.json({ error: "Failed to update SOW status" }, { status: 500 });
     }
+
+    console.log("[approve] SOW status updated:", JSON.stringify(updateData));
 
     // Fetch SOW details for the email
     const { data: sow } = await supabaseAdmin
@@ -102,16 +110,21 @@ export async function PATCH(
       return NextResponse.json({ error: "Reviewer email is required" }, { status: 400 });
     }
 
+    console.log("[approve:PATCH] Sending SOW for review:", params.id, "| Reviewer:", reviewer_email);
+
     // Update SOW status to in_review
-    const { error: updateError } = await supabaseAdmin
+    const { data: updateData, error: updateError } = await supabaseAdmin
       .from("sows")
-      .update({ status: "in_review" })
-      .eq("id", params.id);
+      .update({ status: "in_review", updated_at: new Date().toISOString() })
+      .eq("id", params.id)
+      .select("id, status");
 
     if (updateError) {
-      console.error("SOW status update error:", updateError);
+      console.error("[approve:PATCH] SOW status update error:", JSON.stringify(updateError));
       return NextResponse.json({ error: "Failed to update SOW status" }, { status: 500 });
     }
+
+    console.log("[approve:PATCH] SOW updated:", JSON.stringify(updateData));
 
     // Insert pending approval using RPC to bypass PostgREST schema cache
     const { error: approvalError } = await supabaseAdmin.rpc("insert_approval", {
