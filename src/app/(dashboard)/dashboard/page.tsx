@@ -243,6 +243,9 @@ export default function DashboardPage() {
     (s) => s.status === "in_review" && (now - new Date(s.created_at).getTime()) > 7 * 86400000
   ).length;
 
+  // Demo mode: show placeholder numbers when all real metrics are zero
+  const isDemo = activeCount === 0 && pipelineNum === 0 && avgDays === 0 && atRisk === 0;
+
   // Status pipeline counts
   const statusCounts: Record<string, number> = {};
   for (const s of STATUS_ORDER) statusCounts[s] = 0;
@@ -254,12 +257,19 @@ export default function DashboardPage() {
   // Delivery health: active SOWs
   const deliveryItems = activeSows.slice(0, 10);
 
-  const metrics = [
-    { label: "ACTIVE SOWS", value: activeCount, icon: FileText, prefix: "", suffix: "" },
-    { label: "PIPELINE VALUE", value: pipelineNum, icon: DollarSign, prefix: "$", suffix: pipelineInK ? "k" : "" },
-    { label: "AVG DAYS TO SIGN", value: avgDays, icon: Clock, prefix: "", suffix: "" },
-    { label: "AT RISK", value: atRisk, icon: AlertTriangle, prefix: "", suffix: "" },
-  ];
+  const metrics = isDemo
+    ? [
+        { label: "ACTIVE SOWS", value: 8, icon: FileText, prefix: "", suffix: "" },
+        { label: "PIPELINE VALUE", value: 142, icon: DollarSign, prefix: "\u20AC", suffix: "k" },
+        { label: "AVG DAYS TO SIGN", value: 4, icon: Clock, prefix: "", suffix: "" },
+        { label: "AT RISK", value: 1, icon: AlertTriangle, prefix: "", suffix: "" },
+      ]
+    : [
+        { label: "ACTIVE SOWS", value: activeCount, icon: FileText, prefix: "", suffix: "" },
+        { label: "PIPELINE VALUE", value: pipelineNum, icon: DollarSign, prefix: "$", suffix: pipelineInK ? "k" : "" },
+        { label: "AVG DAYS TO SIGN", value: avgDays, icon: Clock, prefix: "", suffix: "" },
+        { label: "AT RISK", value: atRisk, icon: AlertTriangle, prefix: "", suffix: "" },
+      ];
 
   if (loading) {
     return (
@@ -275,6 +285,11 @@ export default function DashboardPage() {
       <div className="relative rounded-[2rem] bg-[#0A0A0B] h-56 mb-10 overflow-hidden flex items-center px-12 reveal-on-scroll">
         <div className="absolute top-[-200px] right-[-200px] w-[800px] h-[800px] rounded-full bg-purple-300/20 blur-[120px] animate-float-slow pointer-events-none" />
         <div className="absolute bottom-[-200px] left-[-150px] w-[600px] h-[600px] rounded-full bg-[#4F46E5]/30 blur-[100px] animate-float-medium pointer-events-none" />
+        {isDemo && (
+          <span className="absolute top-5 right-5 z-10 px-3 py-1 rounded-full text-[11px] font-medium bg-white/10 text-gray-400 backdrop-blur-sm">
+            Demo Data
+          </span>
+        )}
         <div className="relative z-10">
           <h1 className="text-5xl font-semibold text-white tracking-tighter">Welcome to EngagementFlow</h1>
           <p className="text-gray-400 mt-3 text-lg">Manage your SOWs, track engagement, and close deals faster.</p>
