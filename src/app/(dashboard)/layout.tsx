@@ -15,7 +15,7 @@ const navItems = [
   { label: "Scope Check", href: "/scope-check", icon: ShieldAlert },
   { label: "Health", href: "/health", icon: HeartPulse },
   { label: "Renewals", href: "/renewals", icon: RefreshCw },
-  { label: "CSM", href: "/csm", icon: Users },
+  { label: "CSM", href: "/dashboard", icon: Users },
   { label: "Settings", href: "/settings", icon: Settings },
 ];
 
