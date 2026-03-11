@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import GlowButton from "@/components/ui/GlowButton";
+import SOWTimeline from "@/components/SOWTimeline";
 import {
   calculateHealthScore,
   HEALTH_COLORS,
@@ -460,6 +461,9 @@ export default function SOWDetailPage() {
           </span>
         </div>
       </div>
+
+      {/* Progress Timeline */}
+      <SOWTimeline status={sow.status} updatedAt={(sow as SOW & { updated_at?: string }).updated_at || sow.created_at} />
 
       {/* Executive Summary */}
       <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 mb-6 p-8">
