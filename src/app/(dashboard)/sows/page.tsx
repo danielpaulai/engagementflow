@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, ArrowRight, FileText } from "lucide-react";
+import { Plus, ArrowRight, FileText, Trash2, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import GlowButton from "@/components/ui/GlowButton";
 
@@ -25,6 +25,8 @@ const statusStyles: Record<string, string> = {
 export default function SOWsListPage() {
   const [sows, setSows] = useState<SOWListItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     const fetchSOWs = async () => {
@@ -38,6 +40,28 @@ export default function SOWsListPage() {
     };
     fetchSOWs();
   }, []);
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    setDeleteLoading(true);
+
+    try {
+      const supabase = createClient();
+      await supabase.from("sow_line_items").delete().eq("sow_id", deleteId);
+      await supabase.from("sow_versions").delete().eq("sow_id", deleteId);
+      await supabase.from("approvals").delete().eq("sow_id", deleteId);
+      const { error } = await supabase.from("sows").delete().eq("id", deleteId);
+
+      if (!error) {
+        setSows((prev) => prev.filter((s) => s.id !== deleteId));
+      }
+    } catch {
+      // silent fail
+    }
+
+    setDeleteLoading(false);
+    setDeleteId(null);
+  };
 
   return (
     <div>
@@ -95,15 +119,63 @@ export default function SOWsListPage() {
                   year: "numeric",
                 })}
               </p>
-              <Link
-                href={`/sows/${sow.id}`}
-                className="inline-flex items-center gap-2 text-sm font-medium text-[#9333EA] hover:opacity-70 transition-opacity"
-              >
-                View
-                <ArrowRight size={14} />
-              </Link>
+              <div className="flex items-center justify-between">
+                <Link
+                  href={`/sows/${sow.id}`}
+                  className="inline-flex items-center gap-2 text-sm font-medium text-[#9333EA] hover:opacity-70 transition-opacity"
+                >
+                  View
+                  <ArrowRight size={14} />
+                </Link>
+                <button
+                  onClick={() => setDeleteId(sow.id)}
+                  className="text-gray-300 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400 transition-colors p-1"
+                  title="Delete SOW"
+                >
+                  <Trash2 size={15} />
+                </button>
+              </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setDeleteId(null)}
+          />
+          <div className="relative bg-white dark:bg-[#1A1A1D] rounded-[2rem] shadow-2xl p-8 w-full max-w-md mx-4">
+            <div className="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-500/15 flex items-center justify-center mb-4">
+              <Trash2 size={24} className="text-red-600 dark:text-red-400" />
+            </div>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Delete SOW</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+              Are you sure you want to delete this SOW? This cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setDeleteId(null)}
+                className="px-5 py-2.5 rounded-full text-sm font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleteLoading}
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-full text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {deleteLoading ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Trash2 size={16} />
+                )}
+                {deleteLoading ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

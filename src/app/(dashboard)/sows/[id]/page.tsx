@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -19,6 +19,8 @@ import {
   History,
   ChevronRight,
   Eye,
+  Trash2,
+  Loader2,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import GlowButton from "@/components/ui/GlowButton";
@@ -146,6 +148,7 @@ function InlineEdit({
 
 export default function SOWDetailPage() {
   const { id } = useParams();
+  const router = useRouter();
   const [sow, setSow] = useState<SOW | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<string | null>(null);
@@ -163,6 +166,8 @@ export default function SOWDetailPage() {
   const [healthScore, setHealthScore] = useState<HealthScoreResult | null>(null);
   const [signModalOpen, setSignModalOpen] = useState(false);
   const [signLoading, setSignLoading] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const handleDownloadPdf = async () => {
     if (!sow) return;
@@ -279,6 +284,30 @@ export default function SOWDetailPage() {
     }
 
     setSignLoading(false);
+  };
+
+  const handleDeleteSOW = async () => {
+    if (!sow) return;
+    setDeleteLoading(true);
+
+    try {
+      const supabase = createClient();
+
+      // Delete related records first, then the SOW
+      await supabase.from("sow_line_items").delete().eq("sow_id", sow.id);
+      await supabase.from("sow_versions").delete().eq("sow_id", sow.id);
+      await supabase.from("approvals").delete().eq("sow_id", sow.id);
+
+      const { error } = await supabase.from("sows").delete().eq("id", sow.id);
+
+      if (!error) {
+        router.push("/sows");
+      }
+    } catch {
+      // silent fail
+    }
+
+    setDeleteLoading(false);
   };
 
   useEffect(() => {
@@ -410,6 +439,13 @@ export default function SOWDetailPage() {
               Mark as Signed
             </button>
           )}
+          <button
+            onClick={() => setDeleteModalOpen(true)}
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-full text-sm font-medium text-red-500 border border-red-200 dark:border-red-500/30 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+          >
+            <Trash2 size={16} />
+            Delete
+          </button>
           {healthScore && (() => {
             const hc = HEALTH_COLORS[healthScore.status];
             const hl = HEALTH_LABELS[healthScore.status];
@@ -828,6 +864,45 @@ export default function SOWDetailPage() {
                   <CheckCircle size={16} />
                 )}
                 {signLoading ? "Updating..." : "Confirm Signed"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => setDeleteModalOpen(false)}
+          />
+          <div className="relative bg-white dark:bg-[#1A1A1D] rounded-[2rem] shadow-2xl p-8 w-full max-w-md mx-4">
+            <div className="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-500/15 flex items-center justify-center mb-4">
+              <Trash2 size={24} className="text-red-600 dark:text-red-400" />
+            </div>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Delete SOW</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+              Are you sure you want to delete this SOW? This cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setDeleteModalOpen(false)}
+                className="px-5 py-2.5 rounded-full text-sm font-medium text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteSOW}
+                disabled={deleteLoading}
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-full text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {deleteLoading ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Trash2 size={16} />
+                )}
+                {deleteLoading ? "Deleting..." : "Delete"}
               </button>
             </div>
           </div>
