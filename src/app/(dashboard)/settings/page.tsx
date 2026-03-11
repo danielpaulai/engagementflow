@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Settings, Mail, Send, Loader2, Check, Link2, Phone } from "lucide-react";
+import { Settings, Mail, Send, Loader2, Check, Link2, Phone, Sun, Moon, Monitor } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import GlowButton from "@/components/ui/GlowButton";
+import { useTheme } from "@/components/ThemeProvider";
 
 interface UserPreferences {
   id?: string;
@@ -13,6 +14,7 @@ interface UserPreferences {
 }
 
 export default function SettingsPage() {
+  const { theme, setTheme } = useTheme();
   const [prefs, setPrefs] = useState<UserPreferences>({
     weekly_snapshot_enabled: true,
     weekly_snapshot_email: "",
@@ -202,23 +204,59 @@ export default function SettingsPage() {
     <div className="max-w-2xl mx-auto">
       {/* Header */}
       <div className="flex items-center gap-3 mb-8">
-        <div className="w-10 h-10 rounded-xl bg-[#F3F0FF] flex items-center justify-center">
+        <div className="w-10 h-10 rounded-xl bg-[#F3F0FF] dark:bg-[#9333EA]/15 flex items-center justify-center">
           <Settings size={20} className="text-[#9333EA]" />
         </div>
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Settings</h1>
-          <p className="text-gray-500 text-sm">Manage your EngagementFlow preferences</p>
+          <h1 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">Settings</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">Manage your EngagementFlow preferences</p>
+        </div>
+      </div>
+
+      {/* Appearance Section */}
+      <div className="bg-white dark:bg-white/5 rounded-[2rem] shadow-sm border border-gray-100 dark:border-white/10 p-8 mb-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-9 h-9 rounded-xl bg-[#F3F0FF] dark:bg-[#9333EA]/15 flex items-center justify-center">
+            <Sun size={16} className="text-[#9333EA]" />
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Appearance</h2>
+            <p className="text-xs text-gray-400">
+              Choose your preferred theme for the dashboard.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex gap-3">
+          {([
+            { value: "light" as const, label: "Light", icon: Sun },
+            { value: "dark" as const, label: "Dark", icon: Moon },
+            { value: "system" as const, label: "System", icon: Monitor },
+          ]).map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setTheme(opt.value)}
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-all border ${
+                theme === opt.value
+                  ? "bg-[#F3F0FF] dark:bg-[#9333EA]/15 text-[#9333EA] border-[#9333EA]/30"
+                  : "bg-gray-50 dark:bg-white/5 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-white/10 hover:border-[#9333EA]/30"
+              }`}
+            >
+              <opt.icon size={16} />
+              {opt.label}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* Weekly Snapshot Section */}
-      <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-8 mb-6">
+      <div className="bg-white dark:bg-white/5 rounded-[2rem] shadow-sm border border-gray-100 dark:border-white/10 p-8 mb-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-9 h-9 rounded-xl bg-[#F3F0FF] flex items-center justify-center">
+          <div className="w-9 h-9 rounded-xl bg-[#F3F0FF] dark:bg-[#9333EA]/15 flex items-center justify-center">
             <Mail size={16} className="text-[#9333EA]" />
           </div>
           <div>
-            <h2 className="text-sm font-semibold text-gray-900">Weekly Executive Snapshot</h2>
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Weekly Executive Snapshot</h2>
             <p className="text-xs text-gray-400">
               Receive a branded summary email every Monday with your SOW metrics, health alerts, and upcoming renewals.
             </p>
@@ -226,9 +264,9 @@ export default function SettingsPage() {
         </div>
 
         {/* Toggle */}
-        <div className="flex items-center justify-between py-4 border-b border-gray-100">
+        <div className="flex items-center justify-between py-4 border-b border-gray-100 dark:border-white/10">
           <div>
-            <p className="text-sm font-medium text-gray-800">Enable Monday Email</p>
+            <p className="text-sm font-medium text-gray-800 dark:text-gray-200">Enable Monday Email</p>
             <p className="text-xs text-gray-400 mt-0.5">Sent every Monday at 8:00 AM</p>
           </div>
           <button
@@ -236,7 +274,7 @@ export default function SettingsPage() {
               setPrefs({ ...prefs, weekly_snapshot_enabled: !prefs.weekly_snapshot_enabled })
             }
             className={`relative w-12 h-7 rounded-full transition-colors ${
-              prefs.weekly_snapshot_enabled ? "bg-[#9333EA]" : "bg-gray-200"
+              prefs.weekly_snapshot_enabled ? "bg-[#9333EA]" : "bg-gray-200 dark:bg-white/20"
             }`}
           >
             <div
@@ -248,10 +286,10 @@ export default function SettingsPage() {
         </div>
 
         {/* Email Address */}
-        <div className="py-4 border-b border-gray-100">
+        <div className="py-4 border-b border-gray-100 dark:border-white/10">
           <label
             htmlFor="snapshot-email"
-            className="block text-sm font-medium text-gray-800 mb-1.5"
+            className="block text-sm font-medium text-gray-800 dark:text-gray-200 mb-1.5"
           >
             Send to Email
           </label>
@@ -261,7 +299,7 @@ export default function SettingsPage() {
             value={prefs.weekly_snapshot_email}
             onChange={(e) => setPrefs({ ...prefs, weekly_snapshot_email: e.target.value })}
             placeholder="you@company.com"
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#9333EA] focus:ring-2 focus:ring-[#9333EA]/20 transition-colors text-sm"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 text-gray-800 dark:text-white bg-white dark:bg-white/5 placeholder-gray-400 focus:outline-none focus:border-[#9333EA] focus:ring-2 focus:ring-[#9333EA]/20 transition-colors text-sm"
           />
         </div>
 
@@ -270,7 +308,7 @@ export default function SettingsPage() {
           <button
             onClick={handleSendTest}
             disabled={testing || !prefs.weekly_snapshot_email}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-[#F3F0FF] text-[#9333EA] hover:bg-[#E9D5FF] transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-[#F3F0FF] dark:bg-[#9333EA]/15 text-[#9333EA] hover:bg-[#E9D5FF] dark:hover:bg-[#9333EA]/25 transition-colors disabled:opacity-50"
           >
             {testing ? (
               <>
@@ -297,13 +335,13 @@ export default function SettingsPage() {
       </div>
 
       {/* Integrations Section */}
-      <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-8 mb-6">
+      <div className="bg-white dark:bg-white/5 rounded-[2rem] shadow-sm border border-gray-100 dark:border-white/10 p-8 mb-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-9 h-9 rounded-xl bg-[#F3F0FF] flex items-center justify-center">
+          <div className="w-9 h-9 rounded-xl bg-[#F3F0FF] dark:bg-[#9333EA]/15 flex items-center justify-center">
             <Link2 size={16} className="text-[#9333EA]" />
           </div>
           <div>
-            <h2 className="text-sm font-semibold text-gray-900">Integrations</h2>
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Integrations</h2>
             <p className="text-xs text-gray-400">
               Connect external services to enhance your workflow.
             </p>
@@ -311,27 +349,27 @@ export default function SettingsPage() {
         </div>
 
         {/* Fireflies.ai */}
-        <div className="py-4 border-b border-gray-100">
+        <div className="py-4 border-b border-gray-100 dark:border-white/10">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Phone size={14} className="text-[#9333EA]" />
-              <p className="text-sm font-medium text-gray-800">Fireflies.ai</p>
+              <p className="text-sm font-medium text-gray-800 dark:text-gray-200">Fireflies.ai</p>
             </div>
             <div className="flex items-center gap-1.5">
               <div className={`w-2 h-2 rounded-full ${prefs.fireflies_api_key ? "bg-emerald-500" : "bg-red-400"}`} />
-              <span className={`text-xs font-medium ${prefs.fireflies_api_key ? "text-emerald-600" : "text-red-500"}`}>
+              <span className={`text-xs font-medium ${prefs.fireflies_api_key ? "text-emerald-600 dark:text-emerald-400" : "text-red-500"}`}>
                 {prefs.fireflies_api_key ? "Connected" : "Not Connected"}
               </span>
             </div>
           </div>
           <label
             htmlFor="ff-key"
-            className="block text-sm font-medium text-gray-700 mb-1.5"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
           >
             API Key
           </label>
           {maskedKey && prefs.fireflies_api_key && (
-            <p className="text-xs text-gray-500 mb-1.5 font-mono">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1.5 font-mono">
               Saved: {maskedKey}
             </p>
           )}
@@ -342,7 +380,7 @@ export default function SettingsPage() {
               value={prefs.fireflies_api_key}
               onChange={(e) => setPrefs({ ...prefs, fireflies_api_key: e.target.value })}
               placeholder="Enter your Fireflies.ai API key"
-              className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#9333EA] focus:ring-2 focus:ring-[#9333EA]/20 transition-colors text-sm"
+              className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 text-gray-800 dark:text-white bg-white dark:bg-white/5 placeholder-gray-400 focus:outline-none focus:border-[#9333EA] focus:ring-2 focus:ring-[#9333EA]/20 transition-colors text-sm"
             />
             {prefs.fireflies_api_key && (
               <button
@@ -351,7 +389,7 @@ export default function SettingsPage() {
                   setMaskedKey("");
                   setFfTestResult(null);
                 }}
-                className="px-4 py-3 rounded-xl border border-gray-200 text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
+                className="px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 text-sm font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
               >
                 Clear
               </button>
@@ -367,7 +405,7 @@ export default function SettingsPage() {
           <button
             onClick={handleTestFireflies}
             disabled={ffTesting || !prefs.fireflies_api_key}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-[#F3F0FF] text-[#9333EA] hover:bg-[#E9D5FF] transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-[#F3F0FF] dark:bg-[#9333EA]/15 text-[#9333EA] hover:bg-[#E9D5FF] dark:hover:bg-[#9333EA]/25 transition-colors disabled:opacity-50"
           >
             {ffTesting ? (
               <>

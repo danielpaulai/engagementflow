@@ -38,9 +38,9 @@ const commands: Command[] = [
 ];
 
 const CATEGORY_COLORS: Record<string, string> = {
-  Create: 'bg-[#F3F0FF] text-[#9333EA]',
-  Navigate: 'bg-gray-100 text-gray-600',
-  Settings: 'bg-amber-50 text-amber-700',
+  Create: 'bg-[#F3F0FF] text-[#9333EA] dark:bg-[#9333EA]/15',
+  Navigate: 'bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-400',
+  Settings: 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400',
 };
 
 function fuzzyMatch(query: string, text: string): boolean {
@@ -124,9 +124,9 @@ export default function CommandPalette({ open, onClose }: CommandPaletteProps) {
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-xl bg-white rounded-[24px] shadow-2xl overflow-hidden animate-fade-in-up">
+      <div className="relative w-full max-w-xl bg-white dark:bg-[#1A1A1D] rounded-[24px] shadow-2xl overflow-hidden animate-fade-in-up border border-transparent dark:border-white/10">
         {/* Search input */}
-        <div className="flex items-center gap-3 px-5 border-b border-gray-100">
+        <div className="flex items-center gap-3 px-5 border-b border-gray-100 dark:border-white/10">
           <Search size={18} className="text-gray-400 flex-shrink-0" />
           <input
             ref={inputRef}
@@ -134,9 +134,9 @@ export default function CommandPalette({ open, onClose }: CommandPaletteProps) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search or jump to..."
-            className="w-full py-4 text-sm text-gray-900 placeholder-gray-400 bg-transparent outline-none"
+            className="w-full py-4 text-sm text-gray-900 dark:text-white placeholder-gray-400 bg-transparent outline-none"
           />
-          <kbd className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-md bg-gray-100 text-[10px] font-medium text-gray-500 flex-shrink-0">
+          <kbd className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-md bg-gray-100 dark:bg-white/10 text-[10px] font-medium text-gray-500 dark:text-gray-400 flex-shrink-0">
             ESC
           </kbd>
         </div>
@@ -157,15 +157,15 @@ export default function CommandPalette({ open, onClose }: CommandPaletteProps) {
                   onClick={() => execute(cmd)}
                   onMouseEnter={() => setSelectedIndex(i)}
                   className={`w-full flex items-center gap-3 px-5 py-2.5 text-left transition-colors ${
-                    isSelected ? 'bg-[#F3F0FF]' : 'hover:bg-gray-50'
+                    isSelected ? 'bg-[#F3F0FF] dark:bg-[#9333EA]/15' : 'hover:bg-gray-50 dark:hover:bg-white/5'
                   }`}
                 >
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
-                    isSelected ? 'bg-[#9333EA] text-white' : 'bg-gray-100 text-gray-500'
+                    isSelected ? 'bg-[#9333EA] text-white' : 'bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400'
                   }`}>
                     <Icon size={15} />
                   </div>
-                  <span className={`flex-1 text-sm font-medium ${isSelected ? 'text-[#9333EA]' : 'text-gray-700'}`}>
+                  <span className={`flex-1 text-sm font-medium ${isSelected ? 'text-[#9333EA]' : 'text-gray-700 dark:text-gray-300'}`}>
                     {cmd.label}
                   </span>
                   <span className={`px-2 py-0.5 rounded-md text-[10px] font-medium ${CATEGORY_COLORS[cmd.category] || CATEGORY_COLORS.Navigate}`}>

@@ -50,11 +50,11 @@ interface ActivityItem {
 const STATUS_ORDER = ["draft", "in_review", "approved", "signed", "rejected"];
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
-  draft: { label: "Draft", color: "text-gray-600", bg: "bg-gray-50", border: "border-gray-200" },
-  in_review: { label: "In Review", color: "text-[#9333EA]", bg: "bg-[#F3F0FF]", border: "border-[#9333EA]/20" },
-  approved: { label: "Approved", color: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200" },
-  signed: { label: "Signed", color: "text-indigo-700", bg: "bg-indigo-50", border: "border-indigo-200" },
-  rejected: { label: "Rejected", color: "text-red-600", bg: "bg-red-50", border: "border-red-200" },
+  draft: { label: "Draft", color: "text-gray-600 dark:text-gray-400", bg: "bg-gray-50 dark:bg-white/5", border: "border-gray-200 dark:border-white/10" },
+  in_review: { label: "In Review", color: "text-[#9333EA]", bg: "bg-[#F3F0FF] dark:bg-[#9333EA]/10", border: "border-[#9333EA]/20" },
+  approved: { label: "Approved", color: "text-emerald-700 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-500/10", border: "border-emerald-200 dark:border-emerald-500/20" },
+  signed: { label: "Signed", color: "text-indigo-700 dark:text-indigo-400", bg: "bg-indigo-50 dark:bg-indigo-500/10", border: "border-indigo-200 dark:border-indigo-500/20" },
+  rejected: { label: "Rejected", color: "text-red-600 dark:text-red-400", bg: "bg-red-50 dark:bg-red-500/10", border: "border-red-200 dark:border-red-500/20" },
 };
 
 const ACTIVITY_ICONS: Record<string, typeof FileText> = {
@@ -66,11 +66,11 @@ const ACTIVITY_ICONS: Record<string, typeof FileText> = {
 };
 
 const ACTIVITY_COLORS: Record<string, string> = {
-  created: "bg-[#F3F0FF] text-[#9333EA]",
-  in_review: "bg-blue-50 text-blue-600",
-  approved: "bg-emerald-50 text-emerald-600",
-  rejected: "bg-red-50 text-red-600",
-  changes_requested: "bg-orange-50 text-orange-600",
+  created: "bg-[#F3F0FF] text-[#9333EA] dark:bg-[#9333EA]/15",
+  in_review: "bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400",
+  approved: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400",
+  rejected: "bg-red-50 text-red-600 dark:bg-red-500/15 dark:text-red-400",
+  changes_requested: "bg-orange-50 text-orange-600 dark:bg-orange-500/15 dark:text-orange-400",
 };
 
 function daysBetween(a: string, b: string): number {
@@ -283,7 +283,7 @@ export default function DashboardPage() {
 
       {/* Critical Health Alerts */}
       {criticalAlerts.length > 0 && (
-        <div className="mb-8 rounded-[2rem] border border-red-200 bg-red-50/80 backdrop-blur-sm p-5 reveal-on-scroll">
+        <div className="mb-8 rounded-[2rem] border border-red-200 dark:border-red-500/20 bg-red-50/80 dark:bg-red-500/10 backdrop-blur-sm p-5 reveal-on-scroll">
           <div className="flex items-center gap-2 mb-3">
             <HeartPulse size={18} className="text-[#DC2626]" />
             <h2 className="text-sm font-semibold text-[#DC2626]">Critical Health Alerts</h2>
@@ -293,12 +293,12 @@ export default function DashboardPage() {
               <Link
                 key={alert.id}
                 href="/health"
-                className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-white/80 backdrop-blur-sm border border-red-100 hover:border-red-300 transition-colors group"
+                className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-white/80 dark:bg-white/5 backdrop-blur-sm border border-red-100 dark:border-red-500/20 hover:border-red-300 dark:hover:border-red-500/40 transition-colors group"
               >
                 <div className="flex items-center gap-3">
                   <span className="text-lg font-bold text-[#DC2626]">{alert.score}</span>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{alert.customer_name}</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">{alert.customer_name}</p>
                     <p className="text-xs text-gray-400">{alert.project_title}</p>
                   </div>
                 </div>
@@ -311,7 +311,7 @@ export default function DashboardPage() {
 
       {/* Renewals Summary */}
       {(renewals30 > 0 || renewals60 > 0) && (
-        <div className="mb-8 rounded-[2rem] border border-[#9333EA]/20 bg-[#F3F0FF]/80 backdrop-blur-sm p-5 reveal-on-scroll">
+        <div className="mb-8 rounded-[2rem] border border-[#9333EA]/20 bg-[#F3F0FF]/80 dark:bg-[#9333EA]/10 backdrop-blur-sm p-5 reveal-on-scroll">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <RefreshCw size={18} className="text-[#9333EA]" />
@@ -328,11 +328,11 @@ export default function DashboardPage() {
           <div className="flex items-center gap-6 mt-3">
             <div className="flex items-center gap-2">
               <span className="text-2xl font-bold tracking-tighter text-[#DC2626]">{renewals30}</span>
-              <span className="text-xs text-gray-600">due in 30 days</span>
+              <span className="text-xs text-gray-600 dark:text-gray-400">due in 30 days</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-2xl font-bold tracking-tighter text-[#EA580C]">{renewals60}</span>
-              <span className="text-xs text-gray-600">due in 60 days</span>
+              <span className="text-xs text-gray-600 dark:text-gray-400">due in 60 days</span>
             </div>
           </div>
         </div>
@@ -343,16 +343,16 @@ export default function DashboardPage() {
         {metrics.map((metric, i) => (
           <div
             key={metric.label}
-            className="reveal-on-scroll bg-white/80 backdrop-blur-sm rounded-[32px] p-10 shadow-sm border border-white/60"
+            className="reveal-on-scroll bg-white/80 dark:bg-white/5 backdrop-blur-sm rounded-[32px] p-10 shadow-sm border border-white/60 dark:border-white/10"
             style={{ transitionDelay: `${i * 100}ms` }}
           >
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5 bg-[#F3F0FF]">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5 bg-[#F3F0FF] dark:bg-[#9333EA]/15">
               <metric.icon size={22} className="text-[#9333EA]" />
             </div>
             <p className="text-[2.75rem] font-semibold tracking-tighter text-[#9333EA] mb-1">
               <AnimatedCounter value={metric.value} prefix={metric.prefix} suffix={metric.suffix} />
             </p>
-            <p className="text-sm font-medium tracking-wider text-gray-500 uppercase">
+            <p className="text-sm font-medium tracking-wider text-gray-500 dark:text-gray-400 uppercase">
               {metric.label}
             </p>
           </div>
@@ -388,13 +388,13 @@ export default function DashboardPage() {
       {/* Two-column: Activity Feed + Delivery Health */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Activity */}
-        <div className="reveal-on-scroll bg-white/80 backdrop-blur-sm rounded-[32px] shadow-sm border border-white/60 overflow-hidden">
-          <div className="px-8 py-6 border-b border-gray-100 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#F3F0FF] flex items-center justify-center">
+        <div className="reveal-on-scroll bg-white/80 dark:bg-white/5 backdrop-blur-sm rounded-[32px] shadow-sm border border-white/60 dark:border-white/10 overflow-hidden">
+          <div className="px-8 py-6 border-b border-gray-100 dark:border-white/5 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-[#F3F0FF] dark:bg-[#9333EA]/15 flex items-center justify-center">
               <Activity size={16} className="text-[#9333EA]" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-gray-900">Recent Activity</h2>
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Recent Activity</h2>
               <p className="text-xs text-gray-400">Latest events across your SOWs</p>
             </div>
           </div>
@@ -404,7 +404,7 @@ export default function DashboardPage() {
               <p className="text-sm text-gray-400">No activity yet.</p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-50">
+            <div className="divide-y divide-gray-50 dark:divide-white/5">
               {activities.map((item) => {
                 const Icon = ACTIVITY_ICONS[item.type] || FileText;
                 const colorClass = ACTIVITY_COLORS[item.type] || ACTIVITY_COLORS.created;
@@ -412,13 +412,13 @@ export default function DashboardPage() {
                   <Link
                     key={item.id}
                     href={`/sows/${item.sowId}`}
-                    className="px-8 py-4 flex items-center gap-4 hover:bg-[#FDFCFF] transition-colors group"
+                    className="px-8 py-4 flex items-center gap-4 hover:bg-[#FDFCFF] dark:hover:bg-white/5 transition-colors group"
                   >
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClass}`}>
                       <Icon size={14} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-800 truncate">{item.title}</p>
+                      <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{item.title}</p>
                       <p className="text-xs text-gray-400">{item.subtitle}</p>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
@@ -433,13 +433,13 @@ export default function DashboardPage() {
         </div>
 
         {/* Delivery Health */}
-        <div className="reveal-on-scroll bg-white/80 backdrop-blur-sm rounded-[32px] shadow-sm border border-white/60 overflow-hidden" style={{ transitionDelay: "100ms" }}>
-          <div className="px-8 py-6 border-b border-gray-100 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#F3F0FF] flex items-center justify-center">
+        <div className="reveal-on-scroll bg-white/80 dark:bg-white/5 backdrop-blur-sm rounded-[32px] shadow-sm border border-white/60 dark:border-white/10 overflow-hidden" style={{ transitionDelay: "100ms" }}>
+          <div className="px-8 py-6 border-b border-gray-100 dark:border-white/5 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-[#F3F0FF] dark:bg-[#9333EA]/15 flex items-center justify-center">
               <AlertTriangle size={16} className="text-[#9333EA]" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-gray-900">Delivery Health</h2>
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Delivery Health</h2>
               <p className="text-xs text-gray-400">Active SOW age and status</p>
             </div>
           </div>
@@ -449,7 +449,7 @@ export default function DashboardPage() {
               <p className="text-sm text-gray-400">No active SOWs.</p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-50">
+            <div className="divide-y divide-gray-50 dark:divide-white/5">
               {deliveryItems.map((sow) => {
                 const age = daysSince(sow.created_at);
                 const healthColor = age <= 14
@@ -464,7 +464,7 @@ export default function DashboardPage() {
                   <Link
                     key={sow.id}
                     href={`/sows/${sow.id}`}
-                    className="px-8 py-4 flex items-center gap-4 hover:bg-[#FDFCFF] transition-colors group"
+                    className="px-8 py-4 flex items-center gap-4 hover:bg-[#FDFCFF] dark:hover:bg-white/5 transition-colors group"
                   >
                     {/* Health dot */}
                     <div className="flex-shrink-0" title={healthLabel}>
@@ -472,7 +472,7 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-800 truncate">
+                      <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
                         {sow.project_title || "Untitled"}
                       </p>
                       <p className="text-xs text-gray-400">{sow.customer_name || "Unknown"}</p>

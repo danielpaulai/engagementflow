@@ -234,12 +234,12 @@ export default function CSMPage() {
         <div className="absolute -top-20 -right-20 w-[300px] h-[300px] rounded-full bg-purple-300/15 blur-[120px] animate-float-slow pointer-events-none" />
         <div className="absolute -top-10 -left-20 w-[200px] h-[200px] rounded-full bg-[#4F46E5]/10 blur-[100px] animate-float-medium pointer-events-none" />
         <div className="relative flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-[#F3F0FF] flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-[#F3F0FF] dark:bg-[#9333EA]/15 flex items-center justify-center">
             <Users size={20} className="text-[#9333EA]" />
           </div>
           <div>
-            <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Customer Success</h1>
-            <p className="text-gray-500 text-sm">Monitor and manage all active client engagements</p>
+            <h1 className="text-3xl font-semibold tracking-tight text-gray-900 dark:text-white">Customer Success</h1>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Monitor and manage all active client engagements</p>
           </div>
         </div>
       </div>
@@ -247,21 +247,21 @@ export default function CSMPage() {
       {/* Stat Cards */}
       <div className="grid grid-cols-4 gap-4 mb-8">
         {[
-          { label: "Total Active Clients", value: totalActive, icon: Users, color: "text-[#9333EA]", bg: "bg-[#F3F0FF]" },
-          { label: "At Risk", value: atRiskCount, icon: AlertTriangle, color: "text-red-600", bg: "bg-red-50" },
-          { label: "Renewals Due (60d)", value: renewalsDue60, icon: RefreshCw, color: "text-amber-600", bg: "bg-amber-50" },
-          { label: "Stuck Approvals", value: stuckCount, icon: Clock, color: "text-orange-600", bg: "bg-orange-50" },
+          { label: "Total Active Clients", value: totalActive, icon: Users, color: "text-[#9333EA]", bg: "bg-[#F3F0FF] dark:bg-[#9333EA]/15" },
+          { label: "At Risk", value: atRiskCount, icon: AlertTriangle, color: "text-red-600 dark:text-red-400", bg: "bg-red-50 dark:bg-red-500/15" },
+          { label: "Renewals Due (60d)", value: renewalsDue60, icon: RefreshCw, color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-500/15" },
+          { label: "Stuck Approvals", value: stuckCount, icon: Clock, color: "text-orange-600 dark:text-orange-400", bg: "bg-orange-50 dark:bg-orange-500/15" },
         ].map((stat, i) => (
           <div
             key={stat.label}
-            className="reveal-on-scroll bg-white/80 backdrop-blur-sm rounded-[32px] shadow-sm border border-white/60 p-6"
+            className="reveal-on-scroll bg-white/80 dark:bg-white/5 backdrop-blur-sm rounded-[32px] shadow-sm border border-white/60 dark:border-white/10 p-6"
             style={{ transitionDelay: `${i * 100}ms` }}
           >
             <div className="flex items-center gap-3 mb-3">
               <div className={`w-9 h-9 rounded-xl ${stat.bg} flex items-center justify-center`}>
                 <stat.icon size={16} className={stat.color} />
               </div>
-              <p className="text-xs font-medium text-gray-500">{stat.label}</p>
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{stat.label}</p>
             </div>
             <p className={`text-3xl font-semibold tracking-tight ${stat.color}`}>
               <AnimatedCounter value={stat.value} />
@@ -274,7 +274,7 @@ export default function CSMPage() {
       <div className="grid grid-cols-5 gap-6">
         {/* LEFT COLUMN - Client Health Board */}
         <div className="col-span-3">
-          <div className="reveal-on-scroll bg-white/80 backdrop-blur-sm rounded-[32px] shadow-sm border border-white/60 overflow-hidden">
+          <div className="reveal-on-scroll bg-white/80 dark:bg-white/5 backdrop-blur-sm rounded-[32px] shadow-sm border border-white/60 dark:border-white/10 overflow-hidden">
             <div className="px-8 py-5 bg-[#0A0A0B] border-b border-white/10">
               <div className="flex items-center gap-2">
                 <HeartPulse size={16} className="text-[#9333EA]" />
@@ -288,7 +288,7 @@ export default function CSMPage() {
                 <p className="text-sm text-gray-400">No active client engagements.</p>
               </div>
             ) : (
-              <div className="divide-y divide-gray-50">
+              <div className="divide-y divide-gray-50 dark:divide-white/5">
                 {clients.map((c) => {
                   const colors = HEALTH_COLORS[c.health.status];
                   const age = daysSince(c.sow.created_at);
@@ -298,7 +298,7 @@ export default function CSMPage() {
                     <Link
                       key={c.sow.id}
                       href={`/sows/${c.sow.id}`}
-                      className="flex items-center gap-4 px-8 py-4 hover:bg-[#FDFCFF] transition-colors group"
+                      className="flex items-center gap-4 px-8 py-4 hover:bg-[#FDFCFF] dark:hover:bg-white/5 transition-colors group"
                     >
                       {/* Health indicator */}
                       <div className="relative flex-shrink-0">
@@ -314,12 +314,12 @@ export default function CSMPage() {
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-gray-900 truncate">{c.sow.customer_name}</p>
+                        <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{c.sow.customer_name}</p>
                         <p className="text-xs text-gray-400 truncate">{c.sow.project_title}</p>
                         <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
                           <span>{age}d old</span>
                           {renewalDays !== null && (
-                            <span className={renewalDays <= 30 ? "text-amber-600 font-medium" : ""}>
+                            <span className={renewalDays <= 30 ? "text-amber-600 dark:text-amber-400 font-medium" : ""}>
                               {renewalDays > 0 ? `${renewalDays}d to renewal` : "Renewal overdue"}
                             </span>
                           )}
@@ -346,7 +346,7 @@ export default function CSMPage() {
         {/* RIGHT COLUMN - Action Items */}
         <div className="col-span-2 space-y-6">
           {/* Stuck Approvals */}
-          <div className="reveal-on-scroll bg-white/80 backdrop-blur-sm rounded-[32px] shadow-sm border border-white/60 overflow-hidden" style={{ transitionDelay: "100ms" }}>
+          <div className="reveal-on-scroll bg-white/80 dark:bg-white/5 backdrop-blur-sm rounded-[32px] shadow-sm border border-white/60 dark:border-white/10 overflow-hidden" style={{ transitionDelay: "100ms" }}>
             <div className="px-6 py-4 bg-[#0A0A0B] border-b border-white/10">
               <div className="flex items-center gap-2">
                 <ShieldAlert size={14} className="text-orange-400" />
@@ -360,12 +360,12 @@ export default function CSMPage() {
                 <p className="text-xs text-gray-400">No stuck approvals</p>
               </div>
             ) : (
-              <div className="divide-y divide-gray-50">
+              <div className="divide-y divide-gray-50 dark:divide-white/5">
                 {stuckApprovals.map((s) => (
                   <div key={s.approval.id} className="px-6 py-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{s.sow.customer_name}</p>
+                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{s.sow.customer_name}</p>
                         <p className="text-xs text-gray-400 truncate">{s.sow.project_title}</p>
                         <p className="text-xs text-gray-400 mt-1">{s.approval.reviewer_email}</p>
                       </div>
@@ -374,7 +374,7 @@ export default function CSMPage() {
                         <button
                           onClick={() => handleSendReminder(s.sow.id)}
                           disabled={sendingReminder === s.sow.id}
-                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-[#F3F0FF] text-[#9333EA] hover:bg-[#E9D5FF] transition-colors disabled:opacity-50"
+                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-[#F3F0FF] dark:bg-[#9333EA]/15 text-[#9333EA] hover:bg-[#E9D5FF] dark:hover:bg-[#9333EA]/25 transition-colors disabled:opacity-50"
                         >
                           {sendingReminder === s.sow.id ? (
                             <Loader2 size={11} className="animate-spin" />
@@ -397,7 +397,7 @@ export default function CSMPage() {
           </div>
 
           {/* Upcoming Renewals */}
-          <div className="reveal-on-scroll bg-white/80 backdrop-blur-sm rounded-[32px] shadow-sm border border-white/60 overflow-hidden" style={{ transitionDelay: "200ms" }}>
+          <div className="reveal-on-scroll bg-white/80 dark:bg-white/5 backdrop-blur-sm rounded-[32px] shadow-sm border border-white/60 dark:border-white/10 overflow-hidden" style={{ transitionDelay: "200ms" }}>
             <div className="px-6 py-4 bg-[#0A0A0B] border-b border-white/10">
               <div className="flex items-center gap-2">
                 <RefreshCw size={14} className="text-amber-400" />
@@ -411,26 +411,26 @@ export default function CSMPage() {
                 <p className="text-xs text-gray-400">No upcoming renewals</p>
               </div>
             ) : (
-              <div className="divide-y divide-gray-50">
+              <div className="divide-y divide-gray-50 dark:divide-white/5">
                 {upcomingRenewals.map((c) => {
                   const days = daysUntil(c.sow.renewal_date!);
                   return (
                     <div key={c.sow.id} className="px-6 py-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">{c.sow.customer_name}</p>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{c.sow.customer_name}</p>
                           <p className="text-xs text-gray-400 truncate">{c.sow.project_title}</p>
                           {c.sow.budget_mentioned && (
-                            <p className="text-xs text-gray-500 mt-1 font-medium">{c.sow.budget_mentioned}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-medium">{c.sow.budget_mentioned}</p>
                           )}
                         </div>
                         <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                          <span className={`text-xs font-medium ${days <= 30 ? "text-red-500" : "text-amber-600"}`}>
+                          <span className={`text-xs font-medium ${days <= 30 ? "text-red-500" : "text-amber-600 dark:text-amber-400"}`}>
                             {days}d remaining
                           </span>
                           <Link
                             href="/renewals"
-                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-[#F3F0FF] text-[#9333EA] hover:bg-[#E9D5FF] transition-colors"
+                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-[#F3F0FF] dark:bg-[#9333EA]/15 text-[#9333EA] hover:bg-[#E9D5FF] dark:hover:bg-[#9333EA]/25 transition-colors"
                           >
                             <FileText size={11} />
                             Draft Renewal
@@ -445,7 +445,7 @@ export default function CSMPage() {
           </div>
 
           {/* At Risk Accounts */}
-          <div className="reveal-on-scroll bg-white/80 backdrop-blur-sm rounded-[32px] shadow-sm border border-white/60 overflow-hidden" style={{ transitionDelay: "300ms" }}>
+          <div className="reveal-on-scroll bg-white/80 dark:bg-white/5 backdrop-blur-sm rounded-[32px] shadow-sm border border-white/60 dark:border-white/10 overflow-hidden" style={{ transitionDelay: "300ms" }}>
             <div className="px-6 py-4 bg-[#0A0A0B] border-b border-white/10">
               <div className="flex items-center gap-2">
                 <AlertTriangle size={14} className="text-red-400" />
@@ -459,28 +459,28 @@ export default function CSMPage() {
                 <p className="text-xs text-gray-400">No at-risk accounts</p>
               </div>
             ) : (
-              <div className="divide-y divide-gray-50">
+              <div className="divide-y divide-gray-50 dark:divide-white/5">
                 {atRiskAccounts.map((c) => (
                   <Link
                     key={c.sow.id}
                     href={`/sows/${c.sow.id}`}
-                    className="flex items-start gap-3 px-6 py-4 hover:bg-[#FDFCFF] transition-colors"
+                    className="flex items-start gap-3 px-6 py-4 hover:bg-[#FDFCFF] dark:hover:bg-white/5 transition-colors"
                   >
                     <div className="relative flex-shrink-0 mt-0.5">
                       <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                      <div className="w-8 h-8 rounded-lg bg-red-50 border border-red-200 flex items-center justify-center">
-                        <span className="text-xs font-bold text-red-600">{c.health.score}</span>
+                      <div className="w-8 h-8 rounded-lg bg-red-50 dark:bg-red-500/15 border border-red-200 dark:border-red-500/30 flex items-center justify-center">
+                        <span className="text-xs font-bold text-red-600 dark:text-red-400">{c.health.score}</span>
                       </div>
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">{c.sow.customer_name}</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{c.sow.customer_name}</p>
                       <p className="text-xs text-gray-400 truncate">{c.sow.project_title}</p>
                       {c.health.reasons.length > 0 && (
                         <div className="mt-1.5 flex flex-wrap gap-1">
                           {c.health.reasons.map((r, i) => (
                             <span
                               key={i}
-                              className="inline-block px-2 py-0.5 rounded text-[10px] font-medium bg-red-50 text-red-600 border border-red-100"
+                              className="inline-block px-2 py-0.5 rounded text-[10px] font-medium bg-red-50 dark:bg-red-500/15 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-500/20"
                             >
                               {r}
                             </span>

@@ -11,6 +11,12 @@
   --brand-secondary: #4F46E5;
 }
 
+.dark {
+  --background: #0A0A0B;
+  --foreground: #E5E7EB;
+  color-scheme: dark;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
