@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LayoutDashboard, FileText, BookOpen, Settings, Users, LogOut, ShieldAlert, HeartPulse, RefreshCw, ClipboardList, Phone } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import ScrollReveal from "@/components/ScrollReveal";
+import CommandPalette from "@/components/CommandPalette";
 
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -23,6 +24,7 @@ const navItems = [
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -30,6 +32,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     router.push("/login");
     router.refresh();
   };
+
+  const closePalette = useCallback(() => setPaletteOpen(false), []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   useEffect(() => {
     // Intersection observer for legacy .reveal class
@@ -71,6 +86,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex h-screen">
       <ScrollReveal />
+      <CommandPalette open={paletteOpen} onClose={closePalette} />
 
       {/* Sidebar */}
       <aside className="w-60 flex-shrink-0 flex flex-col backdrop-blur-xl bg-white/90 border-r border-gray-100/80 shadow-sm">
@@ -107,13 +123,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <FileText size={20} className="text-[#9333EA]" />
             <span className="font-semibold text-gray-900 tracking-tight">EngagementFlow</span>
           </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors"
-          >
-            <LogOut size={16} />
-            Logout
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setPaletteOpen(true)}
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-gray-500 hover:border-[#9333EA] hover:text-[#9333EA] transition-colors"
+            >
+              <span>Search</span>
+              <kbd className="ml-1 px-1.5 py-0.5 rounded bg-gray-100 text-[10px] font-medium">&#8984;K</kbd>
+            </button>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors"
+            >
+              <LogOut size={16} />
+              Logout
+            </button>
+          </div>
         </header>
 
         {/* Content */}
