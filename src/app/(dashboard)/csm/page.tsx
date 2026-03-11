@@ -228,14 +228,18 @@ export default function CSMPage() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-8">
-        <div className="w-10 h-10 rounded-xl bg-[#F3F0FF] flex items-center justify-center">
-          <Users size={20} className="text-[#9333EA]" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Customer Success</h1>
-          <p className="text-gray-500 text-sm">Monitor and manage all active client engagements</p>
+      {/* Header with animated blobs */}
+      <div className="relative mb-8 reveal-on-scroll">
+        <div className="absolute -top-20 -right-20 w-[300px] h-[300px] rounded-full bg-purple-300/15 blur-[120px] animate-float-slow pointer-events-none" />
+        <div className="absolute -top-10 -left-20 w-[200px] h-[200px] rounded-full bg-[#4F46E5]/10 blur-[100px] animate-float-medium pointer-events-none" />
+        <div className="relative flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-[#F3F0FF] flex items-center justify-center">
+            <Users size={20} className="text-[#9333EA]" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Customer Success</h1>
+            <p className="text-gray-500 text-sm">Monitor and manage all active client engagements</p>
+          </div>
         </div>
       </div>
 
@@ -246,8 +250,12 @@ export default function CSMPage() {
           { label: "At Risk", value: atRiskCount, icon: AlertTriangle, color: "text-red-600", bg: "bg-red-50" },
           { label: "Renewals Due (60d)", value: renewalsDue60, icon: RefreshCw, color: "text-amber-600", bg: "bg-amber-50" },
           { label: "Stuck Approvals", value: stuckCount, icon: Clock, color: "text-orange-600", bg: "bg-orange-50" },
-        ].map((stat) => (
-          <div key={stat.label} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        ].map((stat, i) => (
+          <div
+            key={stat.label}
+            className="reveal-on-scroll bg-white/80 backdrop-blur-sm rounded-[32px] shadow-sm border border-white/60 p-6"
+            style={{ transitionDelay: `${i * 100}ms` }}
+          >
             <div className="flex items-center gap-3 mb-3">
               <div className={`w-9 h-9 rounded-xl ${stat.bg} flex items-center justify-center`}>
                 <stat.icon size={16} className={stat.color} />
@@ -263,7 +271,7 @@ export default function CSMPage() {
       <div className="grid grid-cols-5 gap-6">
         {/* LEFT COLUMN - Client Health Board */}
         <div className="col-span-3">
-          <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+          <div className="reveal-on-scroll bg-white/80 backdrop-blur-sm rounded-[32px] shadow-sm border border-white/60 overflow-hidden">
             <div className="px-8 py-5 bg-[#0A0A0B] border-b border-white/10">
               <div className="flex items-center gap-2">
                 <HeartPulse size={16} className="text-[#9333EA]" />
@@ -335,7 +343,7 @@ export default function CSMPage() {
         {/* RIGHT COLUMN - Action Items */}
         <div className="col-span-2 space-y-6">
           {/* Stuck Approvals */}
-          <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+          <div className="reveal-on-scroll bg-white/80 backdrop-blur-sm rounded-[32px] shadow-sm border border-white/60 overflow-hidden" style={{ transitionDelay: "100ms" }}>
             <div className="px-6 py-4 bg-[#0A0A0B] border-b border-white/10">
               <div className="flex items-center gap-2">
                 <ShieldAlert size={14} className="text-orange-400" />
@@ -386,7 +394,7 @@ export default function CSMPage() {
           </div>
 
           {/* Upcoming Renewals */}
-          <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+          <div className="reveal-on-scroll bg-white/80 backdrop-blur-sm rounded-[32px] shadow-sm border border-white/60 overflow-hidden" style={{ transitionDelay: "200ms" }}>
             <div className="px-6 py-4 bg-[#0A0A0B] border-b border-white/10">
               <div className="flex items-center gap-2">
                 <RefreshCw size={14} className="text-amber-400" />
@@ -434,7 +442,7 @@ export default function CSMPage() {
           </div>
 
           {/* At Risk Accounts */}
-          <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+          <div className="reveal-on-scroll bg-white/80 backdrop-blur-sm rounded-[32px] shadow-sm border border-white/60 overflow-hidden" style={{ transitionDelay: "300ms" }}>
             <div className="px-6 py-4 bg-[#0A0A0B] border-b border-white/10">
               <div className="flex items-center gap-2">
                 <AlertTriangle size={14} className="text-red-400" />

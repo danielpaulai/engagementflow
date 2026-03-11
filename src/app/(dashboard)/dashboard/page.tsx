@@ -272,8 +272,8 @@ export default function DashboardPage() {
   return (
     <div>
       {/* Hero banner */}
-      <div className="relative rounded-[3rem] bg-[#0A0A0B] h-56 mb-10 overflow-hidden flex items-center px-12">
-        <div className="absolute top-[-200px] right-[-200px] w-[800px] h-[800px] rounded-full bg-[#9333EA]/20 blur-[120px] animate-float-slow pointer-events-none" />
+      <div className="relative rounded-[2rem] bg-[#0A0A0B] h-56 mb-10 overflow-hidden flex items-center px-12 reveal-on-scroll">
+        <div className="absolute top-[-200px] right-[-200px] w-[800px] h-[800px] rounded-full bg-purple-300/20 blur-[120px] animate-float-slow pointer-events-none" />
         <div className="absolute bottom-[-200px] left-[-150px] w-[600px] h-[600px] rounded-full bg-[#4F46E5]/30 blur-[100px] animate-float-medium pointer-events-none" />
         <div className="relative z-10">
           <h1 className="text-5xl font-semibold text-white tracking-tighter">Welcome to EngagementFlow</h1>
@@ -283,7 +283,7 @@ export default function DashboardPage() {
 
       {/* Critical Health Alerts */}
       {criticalAlerts.length > 0 && (
-        <div className="mb-8 rounded-2xl border border-red-200 bg-red-50 p-5">
+        <div className="mb-8 rounded-[2rem] border border-red-200 bg-red-50/80 backdrop-blur-sm p-5 reveal-on-scroll">
           <div className="flex items-center gap-2 mb-3">
             <HeartPulse size={18} className="text-[#DC2626]" />
             <h2 className="text-sm font-semibold text-[#DC2626]">Critical Health Alerts</h2>
@@ -293,7 +293,7 @@ export default function DashboardPage() {
               <Link
                 key={alert.id}
                 href="/health"
-                className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-white border border-red-100 hover:border-red-300 transition-colors group"
+                className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-white/80 backdrop-blur-sm border border-red-100 hover:border-red-300 transition-colors group"
               >
                 <div className="flex items-center gap-3">
                   <span className="text-lg font-bold text-[#DC2626]">{alert.score}</span>
@@ -311,7 +311,7 @@ export default function DashboardPage() {
 
       {/* Renewals Summary */}
       {(renewals30 > 0 || renewals60 > 0) && (
-        <div className="mb-8 rounded-2xl border border-[#9333EA]/20 bg-[#F3F0FF] p-5">
+        <div className="mb-8 rounded-[2rem] border border-[#9333EA]/20 bg-[#F3F0FF]/80 backdrop-blur-sm p-5 reveal-on-scroll">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <RefreshCw size={18} className="text-[#9333EA]" />
@@ -343,7 +343,7 @@ export default function DashboardPage() {
         {metrics.map((metric, i) => (
           <div
             key={metric.label}
-            className="reveal bg-white rounded-[2rem] p-10 shadow-sm border border-gray-200/50"
+            className="reveal-on-scroll bg-white/80 backdrop-blur-sm rounded-[32px] p-10 shadow-sm border border-white/60"
             style={{ transitionDelay: `${i * 100}ms` }}
           >
             <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5 bg-[#F3F0FF]">
@@ -360,7 +360,7 @@ export default function DashboardPage() {
       </div>
 
       {/* SOW Status Pipeline */}
-      <div className="mb-10">
+      <div className="mb-10 reveal-on-scroll">
         <h2 className="text-xs font-semibold uppercase tracking-widest text-[#9333EA] mb-4">
           SOW Pipeline
         </h2>
@@ -371,7 +371,7 @@ export default function DashboardPage() {
             return (
               <div
                 key={status}
-                className={`flex-1 rounded-2xl border ${config.border} ${config.bg} p-6 text-center`}
+                className={`flex-1 rounded-[32px] border ${config.border} ${config.bg}/80 backdrop-blur-sm p-6 text-center`}
               >
                 <p className={`text-3xl font-semibold tracking-tighter ${config.color}`}>
                   {count}
@@ -388,7 +388,7 @@ export default function DashboardPage() {
       {/* Two-column: Activity Feed + Delivery Health */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Activity */}
-        <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+        <div className="reveal-on-scroll bg-white/80 backdrop-blur-sm rounded-[32px] shadow-sm border border-white/60 overflow-hidden">
           <div className="px-8 py-6 border-b border-gray-100 flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-[#F3F0FF] flex items-center justify-center">
               <Activity size={16} className="text-[#9333EA]" />
@@ -433,7 +433,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Delivery Health */}
-        <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+        <div className="reveal-on-scroll bg-white/80 backdrop-blur-sm rounded-[32px] shadow-sm border border-white/60 overflow-hidden" style={{ transitionDelay: "100ms" }}>
           <div className="px-8 py-6 border-b border-gray-100 flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-[#F3F0FF] flex items-center justify-center">
               <AlertTriangle size={16} className="text-[#9333EA]" />

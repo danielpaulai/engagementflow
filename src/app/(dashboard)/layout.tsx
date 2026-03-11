@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LayoutDashboard, FileText, BookOpen, Settings, Users, LogOut, ShieldAlert, HeartPulse, RefreshCw, ClipboardList, Phone } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import ScrollReveal from "@/components/ScrollReveal";
 
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -31,7 +32,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   useEffect(() => {
-    // Intersection observer for reveal-on-scroll
+    // Intersection observer for legacy .reveal class
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -69,11 +70,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex h-screen">
+      <ScrollReveal />
+
       {/* Sidebar */}
-      <aside className="w-60 flex-shrink-0 flex flex-col bg-[#0A0A0B] border-r border-white/5">
+      <aside className="w-60 flex-shrink-0 flex flex-col backdrop-blur-xl bg-white/90 border-r border-gray-100/80 shadow-sm">
         <div className="px-5 py-6 flex items-center gap-2.5">
           <FileText size={22} className="text-[#9333EA]" />
-          <span className="text-white font-semibold text-lg tracking-tight">EngagementFlow</span>
+          <span className="text-gray-900 font-semibold text-lg tracking-tight">EngagementFlow</span>
         </div>
         <nav className="flex-1 px-3 space-y-1 mt-2">
           {navItems.map((item) => {
@@ -84,8 +87,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 href={item.href}
                 className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                   isActive
-                    ? "bg-white/10 text-white"
-                    : "text-gray-400 hover:text-white hover:bg-white/5"
+                    ? "bg-[#F3F0FF] text-[#9333EA]"
+                    : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
                 }`}
               >
                 <item.icon size={18} />
@@ -99,14 +102,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main area */}
       <div className="flex-1 flex flex-col min-h-0">
         {/* Top bar */}
-        <header className="h-20 flex items-center justify-between px-8 sticky top-0 z-10 bg-[#0A0A0B] border-b border-white/5">
+        <header className="h-16 flex items-center justify-between px-8 sticky top-0 z-10 backdrop-blur-xl bg-white/80 border-b border-gray-100/80">
           <div className="flex items-center gap-2.5">
             <FileText size={20} className="text-[#9333EA]" />
-            <span className="font-semibold text-white tracking-tight">EngagementFlow</span>
+            <span className="font-semibold text-gray-900 tracking-tight">EngagementFlow</span>
           </div>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
+            className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors"
           >
             <LogOut size={16} />
             Logout
