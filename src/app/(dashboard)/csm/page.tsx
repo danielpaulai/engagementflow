@@ -21,6 +21,7 @@ import {
   HEALTH_LABELS,
 } from "@/lib/health-score";
 import type { HealthScoreResult } from "@/lib/health-score";
+import AnimatedCounter from "@/components/AnimatedCounter";
 
 interface SOW {
   id: string;
@@ -262,7 +263,9 @@ export default function CSMPage() {
               </div>
               <p className="text-xs font-medium text-gray-500">{stat.label}</p>
             </div>
-            <p className={`text-3xl font-semibold tracking-tight ${stat.color}`}>{stat.value}</p>
+            <p className={`text-3xl font-semibold tracking-tight ${stat.color}`}>
+              <AnimatedCounter value={stat.value} />
+            </p>
           </div>
         ))}
       </div>

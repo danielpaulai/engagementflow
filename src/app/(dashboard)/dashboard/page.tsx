@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { calculateHealthScore } from "@/lib/health-score";
+import AnimatedCounter from "@/components/AnimatedCounter";
 
 interface SOWRecord {
   id: string;
@@ -229,9 +230,8 @@ export default function DashboardPage() {
   const activeCount = activeSows.length;
 
   const pipelineValue = sows.reduce((sum, s) => sum + parseBudget(s.budget_mentioned), 0);
-  const pipelineStr = pipelineValue >= 1000
-    ? `$${(pipelineValue / 1000).toFixed(pipelineValue % 1000 === 0 ? 0 : 1)}k`
-    : `$${pipelineValue.toLocaleString()}`;
+  const pipelineInK = pipelineValue >= 1000;
+  const pipelineNum = pipelineInK ? Math.round(pipelineValue / 1000) : pipelineValue;
 
   const signedSows = sows.filter((s) => s.status === "signed");
   const avgDays = signedSows.length > 0
@@ -255,10 +255,10 @@ export default function DashboardPage() {
   const deliveryItems = activeSows.slice(0, 10);
 
   const metrics = [
-    { label: "ACTIVE SOWS", value: String(activeCount), icon: FileText },
-    { label: "PIPELINE VALUE", value: pipelineStr, icon: DollarSign },
-    { label: "AVG DAYS TO SIGN", value: String(avgDays), icon: Clock },
-    { label: "AT RISK", value: String(atRisk), icon: AlertTriangle },
+    { label: "ACTIVE SOWS", value: activeCount, icon: FileText, prefix: "", suffix: "" },
+    { label: "PIPELINE VALUE", value: pipelineNum, icon: DollarSign, prefix: "$", suffix: pipelineInK ? "k" : "" },
+    { label: "AVG DAYS TO SIGN", value: avgDays, icon: Clock, prefix: "", suffix: "" },
+    { label: "AT RISK", value: atRisk, icon: AlertTriangle, prefix: "", suffix: "" },
   ];
 
   if (loading) {
@@ -350,7 +350,7 @@ export default function DashboardPage() {
               <metric.icon size={22} className="text-[#9333EA]" />
             </div>
             <p className="text-[2.75rem] font-semibold tracking-tighter text-[#9333EA] mb-1">
-              {metric.value}
+              <AnimatedCounter value={metric.value} prefix={metric.prefix} suffix={metric.suffix} />
             </p>
             <p className="text-sm font-medium tracking-wider text-gray-500 uppercase">
               {metric.label}
