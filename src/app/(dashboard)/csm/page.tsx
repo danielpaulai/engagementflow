@@ -254,7 +254,7 @@ export default function CSMPage() {
         ].map((stat, i) => (
           <div
             key={stat.label}
-            className="reveal-on-scroll bg-white/80 dark:bg-white/5 backdrop-blur-sm rounded-[32px] shadow-sm border border-white/60 dark:border-white/10 p-6"
+            className="reveal-on-scroll premium-card rounded-[2.5rem] p-6"
             style={{ transitionDelay: `${i * 100}ms` }}
           >
             <div className="flex items-center gap-3 mb-3">
@@ -274,11 +274,11 @@ export default function CSMPage() {
       <div className="grid grid-cols-5 gap-6">
         {/* LEFT COLUMN - Client Health Board */}
         <div className="col-span-3">
-          <div className="reveal-on-scroll bg-white/80 dark:bg-white/5 backdrop-blur-sm rounded-[32px] shadow-sm border border-white/60 dark:border-white/10 overflow-hidden">
-            <div className="px-8 py-5 bg-[#0A0A0B] border-b border-white/10">
+          <div className="reveal-on-scroll premium-card rounded-[2.5rem] overflow-hidden">
+            <div className="px-8 py-5 border-b border-gray-100 dark:border-white/5">
               <div className="flex items-center gap-2">
                 <HeartPulse size={16} className="text-[#9333EA]" />
-                <h2 className="text-sm font-semibold text-white">Client Health Board</h2>
+                <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Client Health Board</h2>
               </div>
               <p className="text-xs text-gray-400 mt-0.5">Sorted by health score — worst first</p>
             </div>
@@ -346,11 +346,11 @@ export default function CSMPage() {
         {/* RIGHT COLUMN - Action Items */}
         <div className="col-span-2 space-y-6">
           {/* Stuck Approvals */}
-          <div className="reveal-on-scroll bg-white/80 dark:bg-white/5 backdrop-blur-sm rounded-[32px] shadow-sm border border-white/60 dark:border-white/10 overflow-hidden" style={{ transitionDelay: "100ms" }}>
-            <div className="px-6 py-4 bg-[#0A0A0B] border-b border-white/10">
+          <div className="reveal-on-scroll premium-card rounded-[2.5rem] overflow-hidden" style={{ transitionDelay: "100ms" }}>
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-white/5">
               <div className="flex items-center gap-2">
                 <ShieldAlert size={14} className="text-orange-400" />
-                <h3 className="text-sm font-semibold text-white">Stuck Approvals</h3>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Stuck Approvals</h3>
               </div>
               <p className="text-xs text-gray-400 mt-0.5">Pending more than 5 days</p>
             </div>
@@ -397,11 +397,11 @@ export default function CSMPage() {
           </div>
 
           {/* Upcoming Renewals */}
-          <div className="reveal-on-scroll bg-white/80 dark:bg-white/5 backdrop-blur-sm rounded-[32px] shadow-sm border border-white/60 dark:border-white/10 overflow-hidden" style={{ transitionDelay: "200ms" }}>
-            <div className="px-6 py-4 bg-[#0A0A0B] border-b border-white/10">
+          <div className="reveal-on-scroll premium-card rounded-[2.5rem] overflow-hidden" style={{ transitionDelay: "200ms" }}>
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-white/5">
               <div className="flex items-center gap-2">
                 <RefreshCw size={14} className="text-amber-400" />
-                <h3 className="text-sm font-semibold text-white">Upcoming Renewals</h3>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Upcoming Renewals</h3>
               </div>
               <p className="text-xs text-gray-400 mt-0.5">Due within 60 days</p>
             </div>
@@ -445,11 +445,11 @@ export default function CSMPage() {
           </div>
 
           {/* At Risk Accounts */}
-          <div className="reveal-on-scroll bg-white/80 dark:bg-white/5 backdrop-blur-sm rounded-[32px] shadow-sm border border-white/60 dark:border-white/10 overflow-hidden" style={{ transitionDelay: "300ms" }}>
-            <div className="px-6 py-4 bg-[#0A0A0B] border-b border-white/10">
+          <div className="reveal-on-scroll premium-card rounded-[2.5rem] overflow-hidden" style={{ transitionDelay: "300ms" }}>
+            <div className="px-6 py-4 border-b border-gray-100 dark:border-white/5">
               <div className="flex items-center gap-2">
                 <AlertTriangle size={14} className="text-red-400" />
-                <h3 className="text-sm font-semibold text-white">At Risk Accounts</h3>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white">At Risk Accounts</h3>
               </div>
               <p className="text-xs text-gray-400 mt-0.5">Health score below 5</p>
             </div>

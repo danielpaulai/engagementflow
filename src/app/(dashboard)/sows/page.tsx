@@ -81,7 +81,7 @@ export default function SOWsListPage() {
       {loading ? (
         <p className="text-gray-500 text-sm">Loading...</p>
       ) : sows.length === 0 ? (
-        <div className="bg-white/80 dark:bg-white/5 backdrop-blur-sm rounded-[32px] shadow-sm border border-gray-100 dark:border-white/10 p-16 text-center reveal-on-scroll">
+        <div className="premium-card rounded-[2.5rem] p-16 text-center reveal-on-scroll">
           <div className="w-16 h-16 rounded-full bg-[#F3F0FF] dark:bg-[#9333EA]/15 flex items-center justify-center mx-auto mb-5">
             <FileText size={28} className="text-[#9333EA]" />
           </div>
@@ -98,17 +98,20 @@ export default function SOWsListPage() {
           {sows.map((sow, i) => (
             <div
               key={sow.id}
-              className="reveal-on-scroll bg-white/80 dark:bg-white/5 backdrop-blur-sm rounded-[32px] border border-gray-100 dark:border-white/10 shadow-sm p-8"
+              className="reveal-on-scroll premium-card rounded-[2.5rem] p-8"
               style={{ transitionDelay: `${i * 80}ms` }}
             >
-              <div className="flex items-start justify-between mb-4">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="w-9 h-9 rounded-xl bg-purple-50 dark:bg-purple-500/15 flex items-center justify-center flex-shrink-0 text-sm font-bold text-[#9333EA]">
+                  {(sow.customer_name || "?").charAt(0).toUpperCase()}
+                </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-xl font-semibold tracking-tight text-gray-900 dark:text-white truncate">
+                  <h3 className="text-lg font-semibold tracking-tight text-gray-900 dark:text-white truncate">
                     {sow.project_title || "Untitled"}
                   </h3>
-                  <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">{sow.customer_name}</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">{sow.customer_name}</p>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-medium uppercase whitespace-nowrap ml-3 ${statusStyles[sow.status] || statusStyles.draft}`}>
+                <span className={`px-3 py-1 rounded-full text-xs font-medium uppercase whitespace-nowrap ${statusStyles[sow.status] || statusStyles.draft}`}>
                   {sow.status.replace("_", " ")}
                 </span>
               </div>

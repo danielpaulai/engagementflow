@@ -147,10 +147,10 @@ export default function CatalogPage() {
       {/* Header */}
       <div className="flex items-end justify-between mb-10">
         <div>
-          <h2 className="text-3xl font-semibold tracking-tight text-gray-900">
+          <h2 className="text-3xl font-heading font-semibold tracking-tight text-gray-900 dark:text-white">
             Solution Catalog
           </h2>
-          <p className="text-gray-500 mt-1">
+          <p className="text-gray-500 dark:text-gray-400 mt-1">
             Your services, rates and scope boundaries.
           </p>
         </div>
@@ -164,7 +164,7 @@ export default function CatalogPage() {
       {loading ? (
         <p className="text-gray-500 text-sm">Loading...</p>
       ) : services.length === 0 ? (
-        <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-16 text-center">
+        <div className="premium-card rounded-[2.5rem] p-16 text-center">
           <div className="w-16 h-16 rounded-full bg-[#F3F0FF] flex items-center justify-center mx-auto mb-5">
             <BookOpen size={28} className="text-[#9333EA]" />
           </div>
@@ -177,24 +177,24 @@ export default function CatalogPage() {
           </GlowButton>
         </div>
       ) : (
-        <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+        <div className="premium-card rounded-[2.5rem] overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left px-6 py-4 text-xs font-semibold uppercase tracking-widest text-[#9333EA]">
+                <tr className="bg-gray-50/50 dark:bg-white/5">
+                  <th className="text-left px-6 py-4 text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
                     Service
                   </th>
-                  <th className="text-left px-6 py-4 text-xs font-semibold uppercase tracking-widest text-[#9333EA]">
+                  <th className="text-left px-6 py-4 text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
                     Description
                   </th>
-                  <th className="text-left px-6 py-4 text-xs font-semibold uppercase tracking-widest text-[#9333EA]">
+                  <th className="text-left px-6 py-4 text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
                     Hours
                   </th>
-                  <th className="text-left px-6 py-4 text-xs font-semibold uppercase tracking-widest text-[#9333EA]">
+                  <th className="text-left px-6 py-4 text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
                     Rate
                   </th>
-                  <th className="text-left px-6 py-4 text-xs font-semibold uppercase tracking-widest text-[#9333EA]">
+                  <th className="text-left px-6 py-4 text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
                     Region
                   </th>
                   <th className="px-6 py-4" />
@@ -254,10 +254,10 @@ export default function CatalogPage() {
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setPanelOpen(false)}
           />
-          <div className="relative w-full max-w-lg bg-white shadow-2xl flex flex-col animate-slide-in">
+          <div className="relative w-full max-w-lg bg-white dark:bg-[#1A1A1D] shadow-2xl flex flex-col animate-slide-in">
             {/* Panel Header */}
-            <div className="flex items-center justify-between px-8 py-6 border-b border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900">
+            <div className="flex items-center justify-between px-8 py-6 border-b border-gray-100 dark:border-white/5">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                 {editing ? "Edit Service" : "Add Service"}
               </h3>
               <button

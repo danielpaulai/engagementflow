@@ -2,10 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap');
 
 :root {
-  --background: #F9F8FF;
+  --background: #FAFAFA;
   --foreground: #1a1a2e;
   --brand: #9333EA;
   --brand-secondary: #4F46E5;
@@ -23,9 +23,39 @@ body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
+.font-heading {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
 ::selection {
   background: rgba(147, 51, 234, 0.2);
 }
+
+/* Premium card */
+.premium-card {
+  background: white;
+  border: 1px solid rgba(0,0,0,0.04);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.01), 0 8px 16px -4px rgba(0,0,0,0.03);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.premium-card:hover {
+  border-color: rgba(124, 58, 237, 0.1);
+  box-shadow: 0 20px 40px -12px rgba(0,0,0,0.06);
+}
+.dark .premium-card {
+  background: #16162A;
+  border-color: rgba(255,255,255,0.04);
+}
+.dark .premium-card:hover {
+  border-color: rgba(124, 58, 237, 0.15);
+  box-shadow: 0 20px 40px -12px rgba(0,0,0,0.3);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #E5E5E5; border-radius: 10px; }
+.dark ::-webkit-scrollbar-thumb { background: #333; }
 
 /* Reveal on scroll */
 .reveal-on-scroll {

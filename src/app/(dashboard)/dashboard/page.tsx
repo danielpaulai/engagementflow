@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
   FileText,
   Clock,
-  DollarSign,
   AlertTriangle,
   ArrowRight,
   CheckCircle,
@@ -15,6 +14,7 @@ import {
   Activity,
   HeartPulse,
   RefreshCw,
+  TrendingUp,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { calculateHealthScore } from "@/lib/health-score";
@@ -257,19 +257,19 @@ export default function DashboardPage() {
   // Delivery health: active SOWs
   const deliveryItems = activeSows.slice(0, 10);
 
-  const metrics = isDemo
-    ? [
-        { label: "ACTIVE SOWS", value: 8, icon: FileText, prefix: "", suffix: "" },
-        { label: "PIPELINE VALUE", value: 142, icon: DollarSign, prefix: "\u20AC", suffix: "k" },
-        { label: "AVG DAYS TO SIGN", value: 4, icon: Clock, prefix: "", suffix: "" },
-        { label: "AT RISK", value: 1, icon: AlertTriangle, prefix: "", suffix: "" },
-      ]
-    : [
-        { label: "ACTIVE SOWS", value: activeCount, icon: FileText, prefix: "", suffix: "" },
-        { label: "PIPELINE VALUE", value: pipelineNum, icon: DollarSign, prefix: "$", suffix: pipelineInK ? "k" : "" },
-        { label: "AVG DAYS TO SIGN", value: avgDays, icon: Clock, prefix: "", suffix: "" },
-        { label: "AT RISK", value: atRisk, icon: AlertTriangle, prefix: "", suffix: "" },
-      ];
+  const demoMetrics = {
+    active: 8,
+    pipeline: 142,
+    avgDays: 4,
+    atRisk: 1,
+  };
+
+  const displayActive = isDemo ? demoMetrics.active : activeCount;
+  const displayPipeline = isDemo ? demoMetrics.pipeline : pipelineNum;
+  const displayAvgDays = isDemo ? demoMetrics.avgDays : avgDays;
+  const displayAtRisk = isDemo ? demoMetrics.atRisk : atRisk;
+  const displayPipelinePrefix = isDemo ? "\u20AC" : "$";
+  const displayPipelineSuffix = isDemo ? "k" : pipelineInK ? "k" : "";
 
   if (loading) {
     return (
@@ -281,24 +281,30 @@ export default function DashboardPage() {
 
   return (
     <div>
-      {/* Hero banner */}
-      <div className="relative rounded-[2rem] bg-[#0A0A0B] h-56 mb-10 overflow-hidden flex items-center px-12 reveal-on-scroll">
-        <div className="absolute top-[-200px] right-[-200px] w-[800px] h-[800px] rounded-full bg-purple-300/20 blur-[120px] animate-float-slow pointer-events-none" />
-        <div className="absolute bottom-[-200px] left-[-150px] w-[600px] h-[600px] rounded-full bg-[#4F46E5]/30 blur-[100px] animate-float-medium pointer-events-none" />
-        {isDemo && (
-          <span className="absolute top-5 right-5 z-10 px-3 py-1 rounded-full text-[11px] font-medium bg-white/10 text-gray-400 backdrop-blur-sm">
-            Demo Data
-          </span>
-        )}
-        <div className="relative z-10">
-          <h1 className="text-5xl font-semibold text-white tracking-tighter">Welcome to EngagementFlow</h1>
-          <p className="text-gray-400 mt-3 text-lg">Manage your SOWs, track engagement, and close deals faster.</p>
+      {/* Page header */}
+      <div className="flex items-end justify-between mb-8 reveal-on-scroll">
+        <div>
+          <div className="flex items-center gap-3">
+            <h2 className="text-3xl font-heading font-semibold tracking-tight text-gray-900 dark:text-white">Dashboard</h2>
+            {isDemo && (
+              <span className="px-3 py-1 rounded-full text-[11px] font-medium bg-purple-50 dark:bg-purple-500/15 text-purple-600 dark:text-purple-400">
+                Demo Data
+              </span>
+            )}
+          </div>
+          <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">Your engagement pipeline at a glance.</p>
         </div>
+        <Link href="/sows/new">
+          <button className="glow-button flex items-center gap-2">
+            <Plus size={16} />
+            <span>New SOW</span>
+          </button>
+        </Link>
       </div>
 
       {/* Critical Health Alerts */}
       {criticalAlerts.length > 0 && (
-        <div className="mb-8 rounded-[2rem] border border-red-200 dark:border-red-500/20 bg-red-50/80 dark:bg-red-500/10 backdrop-blur-sm p-5 reveal-on-scroll">
+        <div className="mb-8 premium-card rounded-[2rem] border-red-200 dark:border-red-500/20 bg-red-50/80 dark:bg-red-500/10 p-5 reveal-on-scroll">
           <div className="flex items-center gap-2 mb-3">
             <HeartPulse size={18} className="text-[#DC2626]" />
             <h2 className="text-sm font-semibold text-[#DC2626]">Critical Health Alerts</h2>
@@ -326,7 +332,7 @@ export default function DashboardPage() {
 
       {/* Renewals Summary */}
       {(renewals30 > 0 || renewals60 > 0) && (
-        <div className="mb-8 rounded-[2rem] border border-[#9333EA]/20 bg-[#F3F0FF]/80 dark:bg-[#9333EA]/10 backdrop-blur-sm p-5 reveal-on-scroll">
+        <div className="mb-8 premium-card rounded-[2rem] border-[#9333EA]/20 bg-[#F3F0FF]/80 dark:bg-[#9333EA]/10 p-5 reveal-on-scroll">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <RefreshCw size={18} className="text-[#9333EA]" />
@@ -353,57 +359,158 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Metric cards */}
+      {/* Main metrics row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-        {metrics.map((metric, i) => (
-          <div
-            key={metric.label}
-            className="reveal-on-scroll bg-white/80 dark:bg-white/5 backdrop-blur-sm rounded-[32px] p-10 shadow-sm border border-white/60 dark:border-white/10"
-            style={{ transitionDelay: `${i * 100}ms` }}
-          >
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5 bg-[#F3F0FF] dark:bg-[#9333EA]/15">
-              <metric.icon size={22} className="text-[#9333EA]" />
-            </div>
-            <p className="text-[2.75rem] font-semibold tracking-tighter text-[#9333EA] mb-1">
-              <AnimatedCounter value={metric.value} prefix={metric.prefix} suffix={metric.suffix} />
-            </p>
-            <p className="text-sm font-medium tracking-wider text-gray-500 dark:text-gray-400 uppercase">
-              {metric.label}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      {/* SOW Status Pipeline */}
-      <div className="mb-10 reveal-on-scroll">
-        <h2 className="text-xs font-semibold uppercase tracking-widest text-[#9333EA] mb-4">
-          SOW Pipeline
-        </h2>
-        <div className="flex gap-4">
-          {STATUS_ORDER.map((status) => {
-            const config = STATUS_CONFIG[status];
-            const count = statusCounts[status] || 0;
-            return (
-              <div
-                key={status}
-                className={`flex-1 rounded-[32px] border ${config.border} ${config.bg}/80 backdrop-blur-sm p-6 text-center`}
-              >
-                <p className={`text-3xl font-semibold tracking-tighter ${config.color}`}>
-                  {count}
-                </p>
-                <p className={`text-xs font-medium mt-1 uppercase tracking-wide ${config.color} opacity-70`}>
-                  {config.label}
-                </p>
+        {/* Revenue / Pipeline card - spans 2 cols on lg */}
+        <div className="md:col-span-2 premium-card rounded-[2.5rem] p-10 relative overflow-hidden reveal-on-scroll">
+          <div className="absolute inset-0 opacity-[0.04] pointer-events-none" style={{ background: "radial-gradient(at 30% 20%, #9333EA 0px, transparent 60%), radial-gradient(at 70% 80%, #4F46E5 0px, transparent 60%)" }} />
+          <div className="relative">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-purple-50 dark:bg-purple-500/15">
+                <TrendingUp size={22} className="text-[#9333EA]" />
               </div>
-            );
-          })}
+              <div>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Pipeline Value</p>
+                <p className="text-xs text-gray-400">Total across all SOWs</p>
+              </div>
+            </div>
+            <p className="text-[3rem] font-semibold tracking-tighter text-[#9333EA] leading-none mb-4">
+              <AnimatedCounter value={displayPipeline} prefix={displayPipelinePrefix} suffix={displayPipelineSuffix} />
+            </p>
+            <div className="flex items-center gap-6">
+              <div>
+                <p className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
+                  <AnimatedCounter value={displayActive} />
+                </p>
+                <p className="text-xs text-gray-400 mt-0.5">Active SOWs</p>
+              </div>
+              <div className="w-px h-8 bg-gray-200 dark:bg-white/10" />
+              <div>
+                <p className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
+                  <AnimatedCounter value={displayAvgDays} />
+                  <span className="text-sm font-normal text-gray-400 ml-1">days</span>
+                </p>
+                <p className="text-xs text-gray-400 mt-0.5">Avg to sign</p>
+              </div>
+            </div>
+            {/* Progress bar for active SOWs */}
+            <div className="mt-6">
+              <div className="h-1.5 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-1000"
+                  style={{
+                    width: `${Math.min((displayActive / Math.max(displayActive + (isDemo ? 4 : signedSows.length), 1)) * 100, 100)}%`,
+                    background: "linear-gradient(90deg, #9333EA, #4F46E5)",
+                  }}
+                />
+              </div>
+              <div className="flex justify-between mt-1.5">
+                <span className="text-[10px] text-gray-400">Active</span>
+                <span className="text-[10px] text-gray-400">Signed</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* At Risk card */}
+        <div className="premium-card rounded-[2.5rem] p-10 reveal-on-scroll" style={{ transitionDelay: "100ms" }}>
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-red-50 dark:bg-red-500/15 mb-5">
+            <AlertTriangle size={22} className="text-red-500" />
+          </div>
+          <p className="text-[2.75rem] font-semibold tracking-tighter text-red-500 mb-1">
+            <AnimatedCounter value={displayAtRisk} />
+          </p>
+          <p className="text-sm font-medium tracking-wider text-gray-500 dark:text-gray-400 uppercase">
+            At Risk
+          </p>
+        </div>
+
+        {/* Time card */}
+        <div className="premium-card rounded-[2.5rem] p-10 reveal-on-scroll" style={{ transitionDelay: "200ms" }}>
+          <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-blue-50 dark:bg-blue-500/15 mb-5">
+            <Clock size={22} className="text-blue-500" />
+          </div>
+          <p className="text-[2.75rem] font-semibold tracking-tighter text-blue-500 mb-1">
+            <AnimatedCounter value={displayAvgDays} />
+          </p>
+          <p className="text-sm font-medium tracking-wider text-gray-500 dark:text-gray-400 uppercase">
+            Avg Days to Sign
+          </p>
         </div>
       </div>
+
+      {/* SOW Pipeline */}
+      <div className="mb-10 reveal-on-scroll">
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4 font-heading">
+          SOW Pipeline
+        </h2>
+        <div className="premium-card rounded-[2rem] overflow-hidden">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-gray-50/50 dark:bg-white/5">
+                {STATUS_ORDER.map((status) => {
+                  const config = STATUS_CONFIG[status];
+                  return (
+                    <th key={status} className="px-6 py-3 text-center">
+                      <p className={`text-xs font-medium uppercase tracking-wide ${config.color} opacity-70`}>
+                        {config.label}
+                      </p>
+                    </th>
+                  );
+                })}
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                {STATUS_ORDER.map((status) => {
+                  const config = STATUS_CONFIG[status];
+                  const count = statusCounts[status] || 0;
+                  return (
+                    <td key={status} className="px-6 py-6 text-center">
+                      <p className={`text-3xl font-semibold tracking-tighter ${config.color}`}>
+                        {count}
+                      </p>
+                    </td>
+                  );
+                })}
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* At Risk Intelligence */}
+      {(displayAtRisk > 0 || isDemo) && (
+        <div className="mb-10 reveal-on-scroll">
+          <div className="relative bg-[#111] dark:bg-[#111] rounded-[2.5rem] p-10 overflow-hidden text-white">
+            <div className="absolute top-[-100px] right-[-100px] w-[400px] h-[400px] rounded-full bg-purple-500/10 blur-[100px] pointer-events-none" />
+            <div className="relative">
+              <div className="flex items-center gap-3 mb-4">
+                <AlertTriangle size={20} className="text-purple-400" />
+                <h3 className="text-lg font-heading font-semibold">At Risk Intelligence</h3>
+              </div>
+              <p className="text-gray-400 text-sm mb-6 max-w-lg">
+                {isDemo
+                  ? "SOWs that have been in review for more than 7 days may need attention. Follow up with stakeholders to keep your pipeline moving."
+                  : `${displayAtRisk} SOW${displayAtRisk !== 1 ? "s" : ""} in review for over 7 days. Consider following up with stakeholders.`}
+              </p>
+              <Link
+                href="/health"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium text-white transition-all hover:opacity-90"
+                style={{ background: "linear-gradient(135deg, #9333EA, #4F46E5)" }}
+              >
+                View Health Dashboard
+                <ArrowRight size={14} />
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Two-column: Activity Feed + Delivery Health */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Activity */}
-        <div className="reveal-on-scroll bg-white/80 dark:bg-white/5 backdrop-blur-sm rounded-[32px] shadow-sm border border-white/60 dark:border-white/10 overflow-hidden">
+        <div className="reveal-on-scroll premium-card rounded-[2.5rem] overflow-hidden">
           <div className="px-8 py-6 border-b border-gray-100 dark:border-white/5 flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-[#F3F0FF] dark:bg-[#9333EA]/15 flex items-center justify-center">
               <Activity size={16} className="text-[#9333EA]" />
@@ -427,7 +534,7 @@ export default function DashboardPage() {
                   <Link
                     key={item.id}
                     href={`/sows/${item.sowId}`}
-                    className="px-8 py-4 flex items-center gap-4 hover:bg-[#FDFCFF] dark:hover:bg-white/5 transition-colors group"
+                    className="px-8 py-4 flex items-center gap-4 hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors group"
                   >
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClass}`}>
                       <Icon size={14} />
@@ -448,7 +555,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Delivery Health */}
-        <div className="reveal-on-scroll bg-white/80 dark:bg-white/5 backdrop-blur-sm rounded-[32px] shadow-sm border border-white/60 dark:border-white/10 overflow-hidden" style={{ transitionDelay: "100ms" }}>
+        <div className="reveal-on-scroll premium-card rounded-[2.5rem] overflow-hidden" style={{ transitionDelay: "100ms" }}>
           <div className="px-8 py-6 border-b border-gray-100 dark:border-white/5 flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-[#F3F0FF] dark:bg-[#9333EA]/15 flex items-center justify-center">
               <AlertTriangle size={16} className="text-[#9333EA]" />
@@ -479,7 +586,7 @@ export default function DashboardPage() {
                   <Link
                     key={sow.id}
                     href={`/sows/${sow.id}`}
-                    className="px-8 py-4 flex items-center gap-4 hover:bg-[#FDFCFF] dark:hover:bg-white/5 transition-colors group"
+                    className="px-8 py-4 flex items-center gap-4 hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors group"
                   >
                     {/* Health dot */}
                     <div className="flex-shrink-0" title={healthLabel}>
@@ -505,6 +612,21 @@ export default function DashboardPage() {
               })}
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Bottom status bar */}
+      <div className="mt-10 reveal-on-scroll">
+        <div className="bg-white/60 dark:bg-white/5 backdrop-blur-xl border border-white dark:border-white/10 rounded-[2rem] px-8 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-xs text-gray-500 dark:text-gray-400">All systems operational</span>
+          </div>
+          <div className="flex items-center gap-4 text-xs text-gray-400">
+            <span>{sows.length} total SOWs</span>
+            <span>{activeSows.length} active</span>
+            <span>{signedSows.length} signed</span>
+          </div>
         </div>
       </div>
     </div>

@@ -148,16 +148,16 @@ export default function CallsPage() {
             <Phone size={20} className="text-[#9333EA]" />
           </div>
           <div>
-            <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Call Recordings</h1>
-            <p className="text-gray-500 text-sm">Your latest discovery calls, ready to convert into SOWs</p>
+            <h1 className="text-3xl font-heading font-semibold tracking-tight text-gray-900 dark:text-white">Call Recordings</h1>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Your latest discovery calls, ready to convert into SOWs</p>
           </div>
         </div>
 
-        <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-12 text-center">
+        <div className="premium-card rounded-[2.5rem] p-12 text-center">
           <div className="w-16 h-16 rounded-2xl bg-[#F3F0FF] flex items-center justify-center mx-auto mb-6">
             <Link2 size={28} className="text-[#9333EA]" />
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Connect Fireflies.ai</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Connect Fireflies.ai</h2>
           <p className="text-gray-500 text-sm mb-8 max-w-md mx-auto">
             Connect Fireflies.ai to automatically pull your call transcripts and generate SOWs from recorded meetings.
           </p>
@@ -179,8 +179,8 @@ export default function CallsPage() {
             <Phone size={20} className="text-[#9333EA]" />
           </div>
           <div>
-            <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Call Recordings</h1>
-            <p className="text-gray-500 text-sm">Your latest discovery calls, ready to convert into SOWs</p>
+            <h1 className="text-3xl font-heading font-semibold tracking-tight text-gray-900 dark:text-white">Call Recordings</h1>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">Your latest discovery calls, ready to convert into SOWs</p>
           </div>
         </div>
         <button
@@ -213,7 +213,7 @@ export default function CallsPage() {
 
       {/* Loading Skeleton */}
       {loading ? (
-        <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+        <div className="premium-card rounded-[2.5rem] overflow-hidden">
           {[1, 2, 3, 4, 5].map((i) => (
             <div key={i} className="px-8 py-5 border-b border-gray-50 animate-pulse">
               <div className="flex items-center gap-4">
@@ -228,14 +228,14 @@ export default function CallsPage() {
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-16 text-center">
+        <div className="premium-card rounded-[2.5rem] p-16 text-center">
           <Inbox size={40} className="text-gray-200 mx-auto mb-4" />
           <p className="text-gray-500">
             {search ? "No calls match your search." : "No call recordings found."}
           </p>
         </div>
       ) : (
-        <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden">
+        <div className="premium-card rounded-[2.5rem] overflow-hidden">
           <div className="divide-y divide-gray-50">
             {filtered.map((call) => (
               <div
@@ -247,7 +247,7 @@ export default function CallsPage() {
                     <Phone size={15} className="text-[#9333EA]" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-900 truncate">{call.title}</p>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{call.title}</p>
                     <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
                       <span className="flex items-center gap-1">
                         <Clock size={11} />
