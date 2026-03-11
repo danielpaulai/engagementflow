@@ -1,6 +1,7 @@
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://engagementflow.vercel.app";
 
 interface SendEmailParams {
   to: string;
@@ -72,7 +73,7 @@ export function reviewRequestEmail({
           ${customerName}
         </p>
       </div>
-      <a href="http://localhost:3001/sows/${sowId}/review"
+      <a href="${BASE_URL}/sows/${sowId}/review"
          style="display:inline-block;background:linear-gradient(135deg,#9333EA,#4F46E5);color:#ffffff;padding:12px 28px;border-radius:9999px;text-decoration:none;font-size:14px;font-weight:500;">
         Open Review
       </a>
@@ -149,7 +150,7 @@ export function reviewDecisionEmail({
         </p>
       </div>
       ` : ""}
-      <a href="http://localhost:3001/sows"
+      <a href="${BASE_URL}/sows"
          style="display:inline-block;background:linear-gradient(135deg,#9333EA,#4F46E5);color:#ffffff;padding:12px 28px;border-radius:9999px;text-decoration:none;font-size:14px;font-weight:500;">
         View SOWs
       </a>

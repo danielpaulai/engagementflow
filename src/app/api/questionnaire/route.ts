@@ -48,7 +48,7 @@ export async function POST(req: Request) {
     console.log("[questionnaire] Insert success. ID:", data.id);
 
     // Build questionnaire URL
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://engagementflow.vercel.app";
     const questionnaireUrl = `${baseUrl}/questionnaire/${data.token}`;
 
     // Send email — wrapped separately so email failure does not block record creation
