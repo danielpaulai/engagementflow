@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Settings, Mail, Send, Loader2, Check, Link2, Phone, Sun, Moon, Monitor } from "lucide-react";
+import { Settings, Mail, Send, Loader2, Check, Link2, Phone, Sun, Moon, Monitor, Users, UserPlus, Trash2, Shield } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import GlowButton from "@/components/ui/GlowButton";
 import { useTheme } from "@/components/ThemeProvider";
@@ -29,6 +29,13 @@ export default function SettingsPage() {
   const [ffTestResult, setFfTestResult] = useState<string | null>(null);
   const [saveError, setSaveError] = useState("");
   const [maskedKey, setMaskedKey] = useState("");
+  const [members, setMembers] = useState<{id: string; email: string; name: string; role: string}[]>([]);
+  const [newMemberEmail, setNewMemberEmail] = useState("");
+  const [newMemberName, setNewMemberName] = useState("");
+  const [newMemberRole, setNewMemberRole] = useState("reviewer");
+  const [addingMember, setAddingMember] = useState(false);
+  const [memberError, setMemberError] = useState("");
+  const [removingId, setRemovingId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPrefs = async () => {
@@ -66,6 +73,14 @@ export default function SettingsPage() {
           fireflies_api_key: "",
         });
       }
+
+      const { data: membersData } = await supabase
+        .from("team_members")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: true });
+
+      if (membersData) setMembers(membersData);
 
       setLoading(false);
     };
@@ -190,6 +205,59 @@ export default function SettingsPage() {
     }
 
     setFfTesting(false);
+  };
+
+  const handleAddMember = async () => {
+    if (!newMemberEmail || !newMemberEmail.includes("@")) {
+      setMemberError("Please enter a valid email address.");
+      return;
+    }
+
+    setAddingMember(true);
+    setMemberError("");
+
+    try {
+      const res = await fetch("/api/team-members", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: newMemberEmail, name: newMemberName, role: newMemberRole }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setMembers([...members, data.member]);
+        setNewMemberEmail("");
+        setNewMemberName("");
+        setNewMemberRole("reviewer");
+      } else {
+        setMemberError(data.error || "Failed to add member.");
+      }
+    } catch {
+      setMemberError("Something went wrong. Please try again.");
+    }
+
+    setAddingMember(false);
+  };
+
+  const handleRemoveMember = async (id: string) => {
+    setRemovingId(id);
+
+    try {
+      const res = await fetch("/api/team-members", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+
+      if (res.ok) {
+        setMembers(members.filter((m) => m.id !== id));
+      }
+    } catch {
+      // silently fail
+    }
+
+    setRemovingId(null);
   };
 
   if (loading) {
@@ -427,6 +495,122 @@ export default function SettingsPage() {
             >
               {ffTestResult}
             </p>
+          )}
+        </div>
+      </div>
+
+      {/* Team Members Section */}
+      <div className="bg-white dark:bg-white/5 rounded-[2rem] shadow-sm border border-gray-100 dark:border-white/10 p-8 mb-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-9 h-9 rounded-xl bg-[#F3F0FF] dark:bg-[#9333EA]/15 flex items-center justify-center">
+            <Users size={16} className="text-[#9333EA]" />
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Team Members</h2>
+            <p className="text-xs text-gray-400">
+              Manage who can review and collaborate on your SOWs.
+            </p>
+          </div>
+        </div>
+
+        {/* Members List */}
+        <div className="mb-6">
+          {members.length === 0 ? (
+            <div className="text-center py-8">
+              <Users size={24} className="text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+              <p className="text-sm text-gray-400">No team members yet. Add someone below.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {members.map((member) => (
+                <div
+                  key={member.id}
+                  className="flex items-center justify-between px-4 py-3 rounded-xl border border-gray-100 dark:border-white/10 bg-gray-50 dark:bg-white/5"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-8 h-8 rounded-full bg-[#F3F0FF] dark:bg-[#9333EA]/15 flex items-center justify-center flex-shrink-0">
+                      <span className="text-xs font-semibold text-[#9333EA]">
+                        {(member.name || member.email).charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">
+                        {member.name || member.email}
+                      </p>
+                      {member.name && (
+                        <p className="text-xs text-gray-400 truncate">{member.email}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0 ml-3">
+                    <span className="flex items-center gap-1 text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-white/10 px-2 py-1 rounded-lg">
+                      <Shield size={10} />
+                      {member.role}
+                    </span>
+                    <button
+                      onClick={() => handleRemoveMember(member.id)}
+                      disabled={removingId === member.id}
+                      className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors disabled:opacity-50"
+                    >
+                      {removingId === member.id ? (
+                        <Loader2 size={14} className="animate-spin" />
+                      ) : (
+                        <Trash2 size={14} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Add Member Form */}
+        <div className="pt-4 border-t border-gray-100 dark:border-white/10">
+          <p className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-3">Add Member</p>
+          <div className="space-y-3">
+            <input
+              type="text"
+              value={newMemberName}
+              onChange={(e) => setNewMemberName(e.target.value)}
+              placeholder="Name (optional)"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 text-gray-800 dark:text-white bg-white dark:bg-white/5 placeholder-gray-400 focus:outline-none focus:border-[#9333EA] focus:ring-2 focus:ring-[#9333EA]/20 transition-colors text-sm"
+            />
+            <input
+              type="email"
+              value={newMemberEmail}
+              onChange={(e) => setNewMemberEmail(e.target.value)}
+              placeholder="Email address"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 text-gray-800 dark:text-white bg-white dark:bg-white/5 placeholder-gray-400 focus:outline-none focus:border-[#9333EA] focus:ring-2 focus:ring-[#9333EA]/20 transition-colors text-sm"
+            />
+            <select
+              value={newMemberRole}
+              onChange={(e) => setNewMemberRole(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 text-gray-800 dark:text-white bg-white dark:bg-white/5 focus:outline-none focus:border-[#9333EA] focus:ring-2 focus:ring-[#9333EA]/20 transition-colors text-sm"
+            >
+              <option value="reviewer">Reviewer</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <button
+            onClick={handleAddMember}
+            disabled={addingMember || !newMemberEmail}
+            className="mt-3 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium bg-[#F3F0FF] dark:bg-[#9333EA]/15 text-[#9333EA] hover:bg-[#E9D5FF] dark:hover:bg-[#9333EA]/25 transition-colors disabled:opacity-50"
+          >
+            {addingMember ? (
+              <>
+                <Loader2 size={14} className="animate-spin" />
+                Adding...
+              </>
+            ) : (
+              <>
+                <UserPlus size={14} />
+                Add Member
+              </>
+            )}
+          </button>
+          {memberError && (
+            <p className="mt-2 text-xs text-red-500">{memberError}</p>
           )}
         </div>
       </div>

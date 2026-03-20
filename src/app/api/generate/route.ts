@@ -172,6 +172,18 @@ export async function POST(req: Request) {
       specialReqs = specialReqs ? specialReqs + catalogNote : catalogNote.trim();
     }
 
+    // Generate proposal number
+    const now = new Date();
+    const yy = String(now.getFullYear()).slice(-2);
+    const mm = String(now.getMonth() + 1).padStart(2, "0");
+
+    const { count } = await supabase
+      .from("sows")
+      .select("*", { count: "exact", head: true });
+
+    const seq = String((count || 0) + 1).padStart(4, "0");
+    const proposalNumber = `EF${yy}${mm}-${seq}`;
+
     const { data, error } = await supabase
       .from("sows")
       .insert({
@@ -186,6 +198,8 @@ export async function POST(req: Request) {
         special_requirements: specialReqs,
         status: "draft",
         raw_transcript: transcript,
+        proposal_number: proposalNumber,
+        revision_count: 1,
       })
       .select("id")
       .single();

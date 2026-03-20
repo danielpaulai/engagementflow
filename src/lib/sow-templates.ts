@@ -37,6 +37,171 @@ export interface SOWTemplate {
 
 export const SOW_TEMPLATES: SOWTemplate[] = [
   {
+    id: "resident-engineer",
+    name: "Resident Engineer",
+    subtitle: "Dedicated On-Site or Remote Engineer Placement",
+    engagementType: "Resident Engineer Services",
+    duration: "6 or 12 Months",
+    overview:
+      "A dedicated Resident Engineer placed with the client on a defined term basis to provide hands-on technical support, product expertise, and operational continuity. The RE acts as an embedded extension of the client's team, handling day-to-day operational tasks, incident response, health monitoring, and knowledge transfer for the agreed technology platform.",
+    sections: [
+      "Service Onboarding",
+      "Day-to-Day Operations",
+      "Incident and Problem Management",
+      "Health Monitoring and Reporting",
+      "Knowledge Transfer",
+      "Project Governance",
+    ],
+    deliverables: [
+      {
+        name: "RE Onboarding and Environment Familiarisation",
+        description:
+          "Structured onboarding covering client environment, escalation paths, tooling access, and key contacts. Includes documented runbook of RE responsibilities.",
+        week: "Wk 1-2",
+        owner: "Provider",
+      },
+      {
+        name: "Weekly Status Report",
+        description:
+          "Weekly summary of activities completed, incidents handled, open items, and upcoming tasks. Delivered every Friday.",
+        week: "Weekly",
+        owner: "Provider",
+      },
+      {
+        name: "Incident Response Support",
+        description:
+          "First-line response to platform incidents during agreed coverage hours. Triage, containment, and escalation to vendor support where required.",
+        week: "Ongoing",
+        owner: "Provider",
+      },
+      {
+        name: "Platform Health Monitoring",
+        description:
+          "Proactive daily monitoring of platform health, performance metrics, and alert queues. Issues flagged within agreed SLA.",
+        week: "Ongoing",
+        owner: "Provider",
+      },
+      {
+        name: "Monthly Health Report",
+        description:
+          "Consolidated monthly report covering platform performance, incidents handled, open risks, and recommended optimisations.",
+        week: "Monthly",
+        owner: "Provider",
+      },
+      {
+        name: "Change and Configuration Management",
+        description:
+          "Implementation of approved changes to platform configuration, policies, and integrations following the client change control process.",
+        week: "Ongoing",
+        owner: "Joint",
+      },
+      {
+        name: "Knowledge Transfer Sessions",
+        description:
+          "Structured knowledge transfer to client team members covering platform operations, best practices, and runbook walkthroughs. Minimum one session per month.",
+        week: "Monthly",
+        owner: "Provider",
+      },
+      {
+        name: "End-of-Term Handover Report",
+        description:
+          "Comprehensive handover document covering all configurations made, incidents handled, open items, and recommendations for continuity.",
+        week: "Final Month",
+        owner: "Provider",
+      },
+    ],
+    successMetrics: [
+      {
+        metric: "Incident First Response Time",
+        baseline: "Defined at kickoff",
+        target: "< 30 minutes during coverage hours",
+        measurement: "Incident ticket timestamps",
+      },
+      {
+        metric: "Platform Availability",
+        baseline: "Defined at kickoff",
+        target: ">= 99.5% during coverage hours",
+        measurement: "Platform monitoring dashboard",
+      },
+      {
+        metric: "Weekly Report Delivery",
+        baseline: "Not tracked",
+        target: "100% on time (every Friday)",
+        measurement: "Report delivery log",
+      },
+      {
+        metric: "Change Success Rate",
+        baseline: "Defined at kickoff",
+        target: ">= 98% changes implemented without rollback",
+        measurement: "Change log",
+      },
+      {
+        metric: "Knowledge Transfer Completion",
+        baseline: "0 sessions",
+        target: "Minimum 1 session per month",
+        measurement: "Session attendance records",
+      },
+      {
+        metric: "Client Satisfaction (CSAT)",
+        baseline: "N/A",
+        target: ">= 9/10 at mid-term and end-of-term review",
+        measurement: "Satisfaction survey",
+      },
+    ],
+    risks: [
+      {
+        risk: "RE access to client systems delayed at start",
+        likelihood: "Medium",
+        impact: "High",
+        mitigation:
+          "Access requirements checklist shared 2 weeks before start date; named client IT owner accountable for provisioning",
+      },
+      {
+        risk: "Scope creep beyond agreed RE responsibilities",
+        likelihood: "High",
+        impact: "Medium",
+        mitigation:
+          "Clear out-of-scope definition agreed at kickoff; additional project work handled via separate SOW or change request",
+      },
+      {
+        risk: "RE knowledge gap on specific client platform version",
+        likelihood: "Low",
+        impact: "Medium",
+        mitigation:
+          "Pre-placement assessment of RE skills against client environment; vendor training arranged if gap identified",
+      },
+      {
+        risk: "RE replacement required mid-term",
+        likelihood: "Low",
+        impact: "High",
+        mitigation:
+          "Replacement RE provided within 10 business days; overlap period of minimum 5 days for handover",
+      },
+    ],
+    commercialTerms: {
+      "Monthly Service Fee": "[INSERT MONTHLY FEE]",
+      "Term": "[6 or 12] Months",
+      "Coverage Hours": "[INSERT HOURS, e.g. Monday to Friday 08:00-18:00 local time]",
+      "Engagement Model": "[On-site / Remote / Hybrid]",
+      "Payment Structure": "Monthly in advance",
+      "Additional Resources": "Additional RE days available at [INSERT DAY RATE] per day",
+      "Notice Period": "30 days written notice for early termination after minimum 3-month commitment",
+    },
+    assumptions: [
+      "Client will provide all necessary system access, VPN credentials, and tooling licences required for the RE to perform their role",
+      "Client will designate a named point of contact for the RE to report to and escalate issues",
+      "The RE will follow the client change control process for all configuration changes",
+      "Coverage hours are defined as the agreed working hours in the client timezone",
+      "The RE is not responsible for issues caused by third-party vendor software bugs outside of the agreed platform scope",
+    ],
+    outOfScope: [
+      "Development of new platform features or custom integrations not in the original platform scope",
+      "Business process development or documentation beyond the agreed technology scope",
+      "Support for technology platforms not listed in this SOW",
+      "Post-production support outside of agreed coverage hours unless an on-call arrangement is separately agreed",
+    ],
+  },
+  {
     id: "securestart",
     name: "SecureStart",
     subtitle: "Cybersecurity Platform Onboarding & Activation Program",

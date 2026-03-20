@@ -21,6 +21,12 @@ import {
   Eye,
   Trash2,
   Loader2,
+  Paperclip,
+  Upload,
+  FileText,
+  Image,
+  File,
+  ExternalLink,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import GlowButton from "@/components/ui/GlowButton";
@@ -52,6 +58,20 @@ interface SOW {
   status: string;
   created_at: string;
   renewal_date?: string | null;
+  proposal_number?: string;
+  revision_count?: number;
+}
+
+interface SOWArtifact {
+  id: string;
+  sow_id: string;
+  file_name: string;
+  file_type: string;
+  file_url: string;
+  section: "hld" | "appendix";
+  appendix_label: string;
+  file_size: number;
+  created_at: string;
 }
 
 interface SOWVersion {
@@ -168,6 +188,11 @@ export default function SOWDetailPage() {
   const [signLoading, setSignLoading] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [artifacts, setArtifacts] = useState<SOWArtifact[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDownloadPdf = async () => {
     if (!sow) return;
@@ -343,6 +368,13 @@ export default function SOWDetailPage() {
           pending_approval_days: pendingDays,
         });
         setHealthScore(hs);
+
+        const { data: artifactsData } = await supabase
+          .from("sow_artifacts")
+          .select("*")
+          .eq("sow_id", id)
+          .order("created_at", { ascending: true });
+        if (artifactsData) setArtifacts(artifactsData);
       }
       setLoading(false);
     };
@@ -391,6 +423,67 @@ export default function SOWDetailPage() {
       setSow({ ...sow, [field]: value });
     }
     setEditing(null);
+  };
+
+  const handleFileUpload = async (files: FileList | null) => {
+    if (!files || !sow) return;
+    setUploading(true);
+    setUploadError("");
+
+    for (const file of Array.from(files)) {
+      const maxSize = 20 * 1024 * 1024; // 20MB
+      if (file.size > maxSize) {
+        setUploadError(`${file.name} is too large. Max 20MB.`);
+        continue;
+      }
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await fetch(`/api/sows/${sow.id}/artifacts`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setArtifacts((prev) => [...prev, data.artifact]);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setUploadError(data.error || `Failed to upload ${file.name}`);
+      }
+    }
+
+    setUploading(false);
+  };
+
+  const handleRemoveArtifact = async (artifactId: string) => {
+    if (!sow) return;
+    const res = await fetch(`/api/sows/${sow.id}/artifacts`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ artifact_id: artifactId }),
+    });
+    if (res.ok) {
+      setArtifacts((prev) => prev.filter((a) => a.id !== artifactId));
+    }
+  };
+
+  const handleUpdateLabel = async (artifactId: string, label: string) => {
+    const supabase = createClient();
+    await supabase
+      .from("sow_artifacts")
+      .update({ appendix_label: label })
+      .eq("id", artifactId);
+    setArtifacts((prev) =>
+      prev.map((a) => (a.id === artifactId ? { ...a, appendix_label: label } : a))
+    );
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
   if (loading) {
@@ -524,6 +617,9 @@ export default function SOWDetailPage() {
               </div>
             )}
             <p className="text-sm text-gray-400 mt-3">Created {createdDate}</p>
+            {sow.proposal_number && (
+              <p className="text-xs font-mono text-gray-400 mt-1">{sow.proposal_number}</p>
+            )}
           </div>
           <span className={`px-3 py-1 rounded-full text-xs font-medium uppercase ${statusStyles[sow.status] || statusStyles.draft}`}>
             {sow.status.replace("_", " ")}
@@ -781,6 +877,125 @@ export default function SOWDetailPage() {
           <p className="text-sm text-gray-600">{sow.special_requirements || "None specified."}</p>
         )}
       </EditableSection>
+
+      {/* Attachments */}
+      <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 mb-6 p-8">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-[#F3F0FF] flex items-center justify-center">
+              <Paperclip size={16} className="text-[#9333EA]" />
+            </div>
+            <div>
+              <h2 className="text-xs font-semibold uppercase tracking-widest text-[#9333EA]">Attachments</h2>
+              <p className="text-xs text-gray-400 mt-0.5">Images go into the HLD section. All other files become appendices.</p>
+            </div>
+          </div>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium bg-[#F3F0FF] text-[#9333EA] hover:bg-[#E9D5FF] transition-colors disabled:opacity-50"
+          >
+            {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+            {uploading ? "Uploading..." : "Upload File"}
+          </button>
+        </div>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          accept=".pdf,.docx,.doc,.xlsx,.xls,.png,.jpg,.jpeg,.webp"
+          className="hidden"
+          onChange={(e) => handleFileUpload(e.target.files)}
+        />
+
+        {/* Drop zone */}
+        <div
+          onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFileUpload(e.dataTransfer.files); }}
+          onClick={() => fileInputRef.current?.click()}
+          className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-colors mb-4 ${
+            dragOver ? "border-[#9333EA] bg-[#F3F0FF]" : "border-gray-200 hover:border-[#9333EA]/50 hover:bg-[#FDFCFF]"
+          }`}
+        >
+          <Upload size={20} className={`mx-auto mb-2 ${dragOver ? "text-[#9333EA]" : "text-gray-300"}`} />
+          <p className="text-sm text-gray-400">Drop files here or click to browse</p>
+          <p className="text-xs text-gray-300 mt-1">PDF, DOCX, XLSX, PNG, JPG — max 20MB each</p>
+        </div>
+
+        {uploadError && <p className="text-xs text-red-500 mb-4">{uploadError}</p>}
+
+        {/* HLD artifacts */}
+        {artifacts.filter((a) => a.section === "hld").length > 0 && (
+          <div className="mb-4">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">High Level Design</p>
+            <div className="space-y-2">
+              {artifacts.filter((a) => a.section === "hld").map((artifact) => (
+                <div key={artifact.id} className="flex items-center justify-between px-4 py-3 rounded-xl bg-blue-50 border border-blue-100">
+                  <div className="flex items-center gap-3">
+                    <Image size={16} className="text-blue-500 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-800">{artifact.file_name}</p>
+                      <p className="text-xs text-gray-400">{formatFileSize(artifact.file_size)} · Architecture Diagram</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <a href={artifact.file_url} target="_blank" rel="noopener noreferrer" className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-[#9333EA] hover:bg-[#F3F0FF] transition-colors">
+                      <ExternalLink size={14} />
+                    </a>
+                    <button onClick={() => handleRemoveArtifact(artifact.id)} className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Appendix artifacts */}
+        {artifacts.filter((a) => a.section === "appendix").length > 0 && (
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Appendices</p>
+            <div className="space-y-2">
+              {artifacts.filter((a) => a.section === "appendix").map((artifact) => (
+                <div key={artifact.id} className="flex items-center justify-between px-4 py-3 rounded-xl bg-gray-50 border border-gray-100">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    {artifact.file_type.includes("pdf") ? (
+                      <FileText size={16} className="text-red-400 flex-shrink-0" />
+                    ) : (
+                      <File size={16} className="text-blue-400 flex-shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <input
+                        type="text"
+                        value={artifact.appendix_label}
+                        onChange={(e) => setArtifacts((prev) => prev.map((a) => a.id === artifact.id ? { ...a, appendix_label: e.target.value } : a))}
+                        onBlur={(e) => handleUpdateLabel(artifact.id, e.target.value)}
+                        className="text-sm font-medium text-gray-800 bg-transparent border-none outline-none w-full hover:text-[#9333EA] focus:text-[#9333EA]"
+                      />
+                      <p className="text-xs text-gray-400">{artifact.file_name} · {formatFileSize(artifact.file_size)}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <a href={artifact.file_url} target="_blank" rel="noopener noreferrer" className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-[#9333EA] hover:bg-[#F3F0FF] transition-colors">
+                      <ExternalLink size={14} />
+                    </a>
+                    <button onClick={() => handleRemoveArtifact(artifact.id)} className="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {artifacts.length === 0 && !uploading && (
+          <p className="text-xs text-gray-400 text-center py-2">No attachments yet.</p>
+        )}
+      </div>
 
       {/* Send for Review Modal */}
       {reviewModalOpen && (

@@ -18,6 +18,7 @@ interface FirefliesCall {
 }
 
 const TEMPLATE_ICONS: Record<string, typeof Shield> = {
+  "resident-engineer": Shield,
   securestart: Shield,
   threatguard: Shield,
   crisisready: Shield,
