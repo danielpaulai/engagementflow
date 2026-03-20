@@ -25,7 +25,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { service_name, description, hours_min, hours_max, base_rate, currency, out_of_scope, region } = body;
+    const { service_name, description, hours_min, hours_max, base_rate, currency, out_of_scope, region, loe_method, commercial_model, unit_price, unit_type, qualifying_questions } = body;
 
     if (!service_name) {
       return NextResponse.json({ error: "Service name is required" }, { status: 400 });
@@ -40,6 +40,11 @@ export async function POST(req: Request) {
       p_currency: currency || "USD",
       p_out_of_scope: out_of_scope || "",
       p_region: region || "",
+      p_loe_method: loe_method || "fixed_task",
+      p_commercial_model: commercial_model || "fixed",
+      p_unit_price: typeof unit_price === "string" ? parseFloat(unit_price) || 0 : unit_price || 0,
+      p_unit_type: unit_type || "engagement",
+      p_qualifying_questions: qualifying_questions || [],
     });
 
     if (error) {
@@ -61,7 +66,7 @@ export async function POST(req: Request) {
 export async function PATCH(req: Request) {
   try {
     const body = await req.json();
-    const { id, service_name, description, hours_min, hours_max, base_rate, currency, out_of_scope, region } = body;
+    const { id, service_name, description, hours_min, hours_max, base_rate, currency, out_of_scope, region, loe_method, commercial_model, unit_price, unit_type, qualifying_questions } = body;
 
     if (!id) {
       return NextResponse.json({ error: "Service ID is required" }, { status: 400 });
@@ -77,6 +82,11 @@ export async function PATCH(req: Request) {
       p_currency: currency || "USD",
       p_out_of_scope: out_of_scope || "",
       p_region: region || "",
+      p_loe_method: loe_method || "fixed_task",
+      p_commercial_model: commercial_model || "fixed",
+      p_unit_price: typeof unit_price === "string" ? parseFloat(unit_price) || 0 : unit_price || 0,
+      p_unit_type: unit_type || "engagement",
+      p_qualifying_questions: qualifying_questions || [],
     });
 
     if (error) {

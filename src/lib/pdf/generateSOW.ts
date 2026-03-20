@@ -9,6 +9,16 @@ interface Deliverable {
   estimated_weeks: number;
 }
 
+export interface SOWArtifact {
+  id: string;
+  file_name: string;
+  file_type: string;
+  file_url: string;
+  section: "hld" | "appendix";
+  appendix_label: string;
+  file_size: number;
+}
+
 export interface SOW {
   id: string;
   customer_name: string;
@@ -168,6 +178,40 @@ const st = StyleSheet.create({
   confWrap: { position: "absolute", bottom: 28, left: 60, right: 60 },
   confRule: { height: 0.5, backgroundColor: C.gray200, marginBottom: 8 },
   confText: { fontSize: 7, color: C.gray400, lineHeight: 1.5, textAlign: "center" },
+  appendixHeader: {
+    fontSize: 12,
+    fontFamily: "Helvetica-Bold",
+    color: C.gray900,
+    marginBottom: 4,
+  },
+  appendixSubtext: {
+    fontSize: 10,
+    color: C.gray500,
+    marginBottom: 16,
+  },
+  appendixItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginBottom: 6,
+    backgroundColor: C.bg,
+  },
+  appendixItemLabel: {
+    flex: 1,
+    fontSize: 11,
+    fontFamily: "Helvetica-Bold",
+    color: C.gray900,
+  },
+  appendixItemFile: {
+    fontSize: 9,
+    color: C.gray400,
+  },
+  appendixDivider: {
+    height: 0.5,
+    backgroundColor: C.gray200,
+    marginBottom: 20,
+  },
 });
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -185,7 +229,7 @@ function formatDate(dateStr: string): string {
 
 // ─── Main Document Builder ────────────────────────────────────────────────────
 
-export function buildSOWDocument(sow: SOW): React.ReactElement {
+export function buildSOWDocument(sow: SOW, artifacts: SOWArtifact[] = []): React.ReactElement {
   const createdDate = formatDate(sow.created_at);
   const provider = "EngagementFlow";
   const title = sow.project_title || "Statement of Work";
@@ -397,7 +441,25 @@ export function buildSOWDocument(sow: SOW): React.ReactElement {
     );
   }
 
-  const detailsPage = hasDetails
+  const hldArtifacts = artifacts.filter((a) => a.section === "hld");
+  const appendixArtifacts = artifacts.filter((a) => a.section === "appendix");
+
+  if (hldArtifacts.length > 0) {
+    detailChildren.push(sectionSpacer("sp-hld"));
+    detailChildren.push(heading("High Level Design", "hld-h"));
+    hldArtifacts.forEach((artifact, i) => {
+      detailChildren.push(
+        React.createElement(
+          V,
+          { key: `hld-${i}`, style: st.listItem },
+          React.createElement(T, { style: st.bullet }, "\u2022"),
+          React.createElement(T, { style: st.listText }, artifact.file_name)
+        )
+      );
+    });
+  }
+
+  const detailsPage = hasDetails || hldArtifacts.length > 0
     ? React.createElement(
         Page,
         { size: "A4", style: st.page },
@@ -465,11 +527,46 @@ export function buildSOWDocument(sow: SOW): React.ReactElement {
   );
 
   // ═══════════════════════════════════════════════════════════════════════
+  // APPENDICES PAGE
+  // ═══════════════════════════════════════════════════════════════════════
+
+  const appendixPage = appendixArtifacts.length > 0
+    ? React.createElement(
+        Page,
+        { size: "A4", style: st.page },
+        pageHeader,
+        heading("Appendices"),
+        React.createElement(V, { style: st.appendixDivider }),
+        ...appendixArtifacts.map((artifact, i) =>
+          React.createElement(
+            V,
+            { key: `app-${i}`, style: st.appendixItem },
+            React.createElement(
+              V,
+              { style: { flex: 1 } },
+              React.createElement(
+                T,
+                { style: st.appendixItemLabel },
+                artifact.appendix_label || `Appendix ${String.fromCharCode(65 + i)}`
+              ),
+              React.createElement(
+                T,
+                { style: st.appendixItemFile },
+                artifact.file_name
+              )
+            )
+          )
+        )
+      )
+    : null;
+
+  // ═══════════════════════════════════════════════════════════════════════
   // ASSEMBLE DOCUMENT
   // ═══════════════════════════════════════════════════════════════════════
 
   const pages: React.ReactNode[] = [page1];
   if (detailsPage) pages.push(detailsPage);
+  if (appendixPage) pages.push(appendixPage);
   pages.push(signaturePage);
 
   return React.createElement(Document, {}, ...pages);

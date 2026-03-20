@@ -14,8 +14,32 @@ interface CatalogService {
   currency: string;
   out_of_scope: string;
   region: string;
+  loe_method: string;
+  commercial_model: string;
+  qualifying_questions: { question: string; field_type: string; required: boolean }[];
+  unit_price: number;
+  unit_type: string;
   created_at: string;
 }
+
+const LOE_METHODS = [
+  { value: "fixed_task", label: "Fixed Task List", description: "Pre-defined tasks with set mandays" },
+  { value: "formula", label: "Formula-Driven", description: "Calculate effort from numeric inputs" },
+  { value: "excel_upload", label: "Excel Calculator", description: "Upload your own LoE spreadsheet" },
+];
+
+const COMMERCIAL_MODELS = [
+  { value: "fixed", label: "Fixed Price", description: "Single fee for defined scope" },
+  { value: "tm", label: "Time & Materials", description: "Hourly or daily rate, billed on actuals" },
+  { value: "re", label: "Residency", description: "Monthly fee for embedded engineer" },
+];
+
+const UNIT_TYPES = [
+  { value: "engagement", label: "Per Engagement" },
+  { value: "day", label: "Per Day" },
+  { value: "hour", label: "Per Hour" },
+  { value: "month", label: "Per Month" },
+];
 
 const CURRENCIES = ["USD", "EUR", "GBP", "SGD", "MYR", "AED", "AUD", "CAD"];
 
@@ -39,6 +63,11 @@ const emptyForm = {
   currency: "USD",
   out_of_scope: "",
   region: "",
+  loe_method: "fixed_task",
+  commercial_model: "fixed",
+  unit_price: "",
+  unit_type: "engagement",
+  qualifying_questions: [] as { question: string; field_type: string; required: boolean }[],
 };
 
 export default function CatalogPage() {
@@ -49,6 +78,7 @@ export default function CatalogPage() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [newQuestion, setNewQuestion] = useState("");
 
   const fetchServices = async () => {
     try {
@@ -85,6 +115,11 @@ export default function CatalogPage() {
       currency: service.currency || "USD",
       out_of_scope: service.out_of_scope,
       region: service.region,
+      qualifying_questions: service.qualifying_questions || [],
+      loe_method: service.loe_method || "fixed_task",
+      commercial_model: service.commercial_model || "fixed",
+      unit_price: String(service.unit_price || ""),
+      unit_type: service.unit_type || "engagement",
     });
     setError("");
     setPanelOpen(true);
@@ -101,7 +136,15 @@ export default function CatalogPage() {
 
     try {
       const method = editing ? "PATCH" : "POST";
-      const body = editing ? { id: editing.id, ...form } : form;
+      const baseBody = {
+        ...form,
+        qualifying_questions: form.qualifying_questions,
+        loe_method: form.loe_method,
+        commercial_model: form.commercial_model,
+        unit_price: typeof form.unit_price === "string" ? parseFloat(form.unit_price) || 0 : form.unit_price,
+        unit_type: form.unit_type,
+      };
+      const body = editing ? { id: editing.id, ...baseBody } : baseBody;
 
       const res = await fetch("/api/catalog", {
         method,
@@ -140,6 +183,25 @@ export default function CatalogPage() {
 
   const updateForm = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const addQuestion = () => {
+    if (!newQuestion.trim()) return;
+    setForm((prev) => ({
+      ...prev,
+      qualifying_questions: [
+        ...(prev.qualifying_questions as { question: string; field_type: string; required: boolean }[]),
+        { question: newQuestion.trim(), field_type: "text", required: false },
+      ],
+    }));
+    setNewQuestion("");
+  };
+
+  const removeQuestion = (index: number) => {
+    setForm((prev) => ({
+      ...prev,
+      qualifying_questions: (prev.qualifying_questions as { question: string; field_type: string; required: boolean }[]).filter((_, i) => i !== index),
+    }));
   };
 
   return (
@@ -197,6 +259,7 @@ export default function CatalogPage() {
                   <th className="text-left px-6 py-4 text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">
                     Region
                   </th>
+                  <th className="text-left px-6 py-4 text-xs font-semibold uppercase tracking-widest text-gray-500 dark:text-gray-400">SKU Config</th>
                   <th className="px-6 py-4" />
                 </tr>
               </thead>
@@ -220,6 +283,16 @@ export default function CatalogPage() {
                     </td>
                     <td className="px-6 py-4 text-gray-500">
                       {s.region || "—"}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex gap-1.5 flex-wrap">
+                        <span className="px-2 py-0.5 rounded-full text-xs bg-[#F3F0FF] text-[#9333EA] font-medium">
+                          {s.loe_method === "fixed_task" ? "Fixed Tasks" : s.loe_method === "formula" ? "Formula" : "Excel"}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-600 font-medium">
+                          {s.commercial_model === "fixed" ? "Fixed Price" : s.commercial_model === "tm" ? "T&M" : "RE"}
+                        </span>
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 justify-end">
@@ -371,6 +444,118 @@ export default function CatalogPage() {
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#9333EA] focus:ring-2 focus:ring-[#9333EA]/20 transition-colors"
                   placeholder="e.g. UK, US, Global"
                 />
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-gray-100 pt-5">
+                <p className="text-xs font-semibold uppercase tracking-widest text-[#9333EA] mb-4">SKU Configuration</p>
+
+                {/* LoE Method */}
+                <div className="mb-5">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">LoE Calculation Method</label>
+                  <div className="space-y-2">
+                    {LOE_METHODS.map((method) => (
+                      <button
+                        key={method.value}
+                        type="button"
+                        onClick={() => updateForm("loe_method", method.value)}
+                        className={`w-full text-left px-4 py-3 rounded-xl border-2 transition-all ${
+                          form.loe_method === method.value
+                            ? "border-[#9333EA] bg-[#F3F0FF]"
+                            : "border-gray-200 hover:border-[#9333EA]/40"
+                        }`}
+                      >
+                        <p className={`text-sm font-medium ${form.loe_method === method.value ? "text-[#9333EA]" : "text-gray-800"}`}>{method.label}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">{method.description}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Commercial Model */}
+                <div className="mb-5">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Commercial Model</label>
+                  <div className="space-y-2">
+                    {COMMERCIAL_MODELS.map((model) => (
+                      <button
+                        key={model.value}
+                        type="button"
+                        onClick={() => updateForm("commercial_model", model.value)}
+                        className={`w-full text-left px-4 py-3 rounded-xl border-2 transition-all ${
+                          form.commercial_model === model.value
+                            ? "border-[#9333EA] bg-[#F3F0FF]"
+                            : "border-gray-200 hover:border-[#9333EA]/40"
+                        }`}
+                      >
+                        <p className={`text-sm font-medium ${form.commercial_model === model.value ? "text-[#9333EA]" : "text-gray-800"}`}>{model.label}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">{model.description}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Unit Price */}
+                <div className="mb-5">
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Unit Price</label>
+                  <div className="flex gap-3">
+                    <select
+                      value={form.unit_type}
+                      onChange={(e) => updateForm("unit_type", e.target.value)}
+                      className="px-3 py-3 rounded-xl border border-gray-200 text-gray-800 bg-white focus:outline-none focus:border-[#9333EA] focus:ring-2 focus:ring-[#9333EA]/20 transition-colors text-sm"
+                    >
+                      {UNIT_TYPES.map((u) => (
+                        <option key={u.value} value={u.value}>{u.label}</option>
+                      ))}
+                    </select>
+                    <input
+                      type="text"
+                      value={form.unit_price}
+                      onChange={(e) => updateForm("unit_price", e.target.value)}
+                      className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#9333EA] focus:ring-2 focus:ring-[#9333EA]/20 transition-colors"
+                      placeholder="e.g. 8500"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">Used in the LoE calculator: effort × unit price = commercial total</p>
+                </div>
+
+                {/* Qualifying Questions */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Qualifying Questions</label>
+                  <p className="text-xs text-gray-400 mb-3">Questions the consultant must answer to run the LoE calculator for this service.</p>
+                  {(form.qualifying_questions as { question: string }[]).length > 0 && (
+                    <div className="space-y-2 mb-3">
+                      {(form.qualifying_questions as { question: string }[]).map((q, i) => (
+                        <div key={i} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gray-50 border border-gray-100">
+                          <p className="flex-1 text-sm text-gray-700">{q.question}</p>
+                          <button
+                            type="button"
+                            onClick={() => removeQuestion(i)}
+                            className="text-gray-400 hover:text-red-500 transition-colors"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newQuestion}
+                      onChange={(e) => setNewQuestion(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && addQuestion()}
+                      placeholder="e.g. How many devices are in scope?"
+                      className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-800 text-sm placeholder-gray-400 focus:outline-none focus:border-[#9333EA] focus:ring-2 focus:ring-[#9333EA]/20 transition-colors"
+                    />
+                    <button
+                      type="button"
+                      onClick={addQuestion}
+                      className="px-4 py-2.5 rounded-xl bg-[#9333EA] text-white text-sm font-medium hover:bg-[#7E22CE] transition-colors"
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
               </div>
 
               {error && (

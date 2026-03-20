@@ -23,8 +23,16 @@ export async function GET(
       return NextResponse.json({ error: "SOW not found" }, { status: 404 });
     }
 
+    const { data: artifacts } = await supabase
+      .from("sow_artifacts")
+      .select("*")
+      .eq("sow_id", params.id)
+      .order("created_at", { ascending: true });
+
     const s = sow as SOW;
-    const pdfStream = await ReactPDF.renderToStream(buildSOWDocument(s));
+    const pdfStream = await ReactPDF.renderToStream(
+      buildSOWDocument(s, artifacts || [])
+    );
 
     const chunks: Uint8Array[] = [];
     for await (const chunk of pdfStream as AsyncIterable<Uint8Array>) {

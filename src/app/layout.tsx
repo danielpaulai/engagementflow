@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import ScrollRevealInit from "@/components/ScrollRevealInit";
+import ThemeProvider from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
   title: "EngagementFlow",
@@ -13,10 +14,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className="antialiased">
-        {children}
-        <ScrollRevealInit />
+        <ThemeProvider>
+          {children}
+          <ScrollRevealInit />
+        </ThemeProvider>
       </body>
     </html>
   );
